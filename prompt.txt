@@ -5,6 +5,7 @@ Requirements:
 	•	It should also print a local QR code in the terminal pointing to the server’s IP address, using qrcode-terminal.
 	•	The frontend (index.html) should be mobile-optimized, with 100px bottom spacing to account for mobile browser UI. It should include:
 	•	A “loading…” screen,
+	•	A QR code to scan to open the current url 
 	•	A visual loading spinner,
 	•	A user count indicator (👥 1),
 	•	A dynamically generated QR code of the current page URL,
