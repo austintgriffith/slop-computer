@@ -3,107 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>How's the Vibe?</title>
+    <title>Loading</title>
     <style>
       body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: Arial, sans-serif;
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 100vh;
+        height: 100vh;
         margin: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background-color: #f5f5f5;
       }
-      .voting-container {
+      .loader-wrapper {
         text-align: center;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 40px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        max-width: 400px;
-        width: 90%;
       }
       h1 {
-        font-size: 2.5rem;
-        margin-bottom: 30px;
-        font-weight: 300;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-      }
-      .vote-buttons {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        margin-bottom: 40px;
-      }
-      .vote-btn {
-        padding: 15px 30px;
-        font-size: 1.2rem;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: bold;
-        min-width: 120px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      }
-      .vote-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      }
-      .vote-btn:active {
-        transform: translateY(0);
-      }
-      .good-btn {
-        background: linear-gradient(45deg, #4caf50, #45a049);
-        color: white;
-      }
-      .bad-btn {
-        background: linear-gradient(45deg, #f44336, #d32f2f);
-        color: white;
-      }
-      .results {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
-        padding: 20px;
+        font-size: 2rem;
+        color: #333;
         margin-bottom: 20px;
       }
-      .result-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin: 10px 0;
-        font-size: 1.1rem;
+      .content-img {
+        max-width: 300px;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       }
-      .vote-count {
-        font-weight: bold;
-        font-size: 1.3rem;
+      .loader-container {
+        text-align: center;
       }
-      .percentage-bar {
-        width: 100%;
-        height: 8px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 4px;
-        margin: 5px 0;
-        overflow: hidden;
+      .loader {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
       }
-      .percentage-fill {
-        height: 100%;
-        transition: width 0.5s ease;
-        border-radius: 4px;
+      .loader:after {
+        content: " ";
+        display: block;
+        width: 64px;
+        height: 64px;
+        margin: 8px;
+        border-radius: 50%;
+        border: 6px solid #808080;
+        border-color: #808080 transparent #808080 transparent;
+        animation: loader 1.2s linear infinite;
       }
-      .good-fill {
-        background: linear-gradient(90deg, #4caf50, #45a049);
-      }
-      .bad-fill {
-        background: linear-gradient(90deg, #f44336, #d32f2f);
-      }
-      .total-votes {
-        font-size: 0.9rem;
-        opacity: 0.8;
-        margin-top: 15px;
+      @keyframes loader {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
       .qr-code {
         position: fixed;
@@ -113,74 +63,28 @@
         height: 100px;
         background-color: white;
         padding: 5px;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       }
       .user-counter {
         position: fixed;
         top: 20px;
         right: 20px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
+        background-color: #808080;
         color: white;
         padding: 10px 15px;
-        border-radius: 25px;
+        border-radius: 20px;
         font-weight: bold;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-      }
-      .voted-message {
-        display: none;
-        color: #4caf50;
-        font-weight: bold;
-        margin-top: 10px;
-        padding: 10px;
-        background: rgba(76, 175, 80, 0.1);
-        border-radius: 10px;
-        border: 1px solid rgba(76, 175, 80, 0.3);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   </head>
   <body>
-    <div class="voting-container">
-      <h1>How's the vibe?</h1>
-
-      <div class="vote-buttons" id="vote-buttons">
-        <button class="vote-btn good-btn" onclick="vote('good')">
-          😊 Good
-        </button>
-        <button class="vote-btn bad-btn" onclick="vote('bad')">😞 Bad</button>
-      </div>
-
-      <div class="voted-message" id="voted-message">Thanks for voting! 🎉</div>
-
-      <div class="results">
-        <div class="result-item">
-          <span>😊 Good</span>
-          <span class="vote-count" id="good-count">0</span>
-        </div>
-        <div class="percentage-bar">
-          <div
-            class="percentage-fill good-fill"
-            id="good-bar"
-            style="width: 0%"
-          ></div>
-        </div>
-
-        <div class="result-item">
-          <span>😞 Bad</span>
-          <span class="vote-count" id="bad-count">0</span>
-        </div>
-        <div class="percentage-bar">
-          <div
-            class="percentage-fill bad-fill"
-            id="bad-bar"
-            style="width: 0%"
-          ></div>
-        </div>
-
-        <div class="total-votes" id="total-votes">Total votes: 0</div>
+    <div class="loader-wrapper">
+      <h1>loading...</h1>
+      <div class="loader-container">
+        <div class="loader"></div>
       </div>
     </div>
 
@@ -192,22 +96,23 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-      let hasVoted = false;
-
       // Generate QR code with client-side library
       function generateQRCode() {
         const qrContainer = document.getElementById("qr-code-container");
         const currentUrl = window.location.href;
 
+        // Create QR code using the library - using version 1 with L error correction for simple URLs
         const qr = qrcode(3, "L");
         qr.addData(currentUrl);
         qr.make();
 
+        // Create SVG QR code
         qrContainer.innerHTML = qr.createSvgTag({
           cellSize: 5,
           margin: 4,
         });
 
+        // Adjust size of the SVG element
         const svgElement = qrContainer.querySelector("svg");
         svgElement.setAttribute("width", "100px");
         svgElement.setAttribute("height", "100px");
@@ -218,79 +123,10 @@
 
       const socket = io();
 
-      // Get user ID from URL or generate one
-      const urlParams = new URLSearchParams(window.location.search);
-      const userId = urlParams.get("userId") || localStorage.getItem("userId");
-
-      // Connect with user ID if available
-      if (userId) {
-        socket.io.opts.query = { userId };
-      }
-
-      // Store user ID when received from server
-      socket.on("userId", (id) => {
-        localStorage.setItem("userId", id);
-      });
-
       // Update user count when received from server
       socket.on("userCount", (count) => {
         document.getElementById("user-counter").textContent = `👥 ${count}`;
       });
-
-      // Update vote results when received from server
-      socket.on("voteResults", (results) => {
-        updateVoteDisplay(results);
-      });
-
-      // Handle voting
-      function vote(choice) {
-        if (hasVoted) {
-          return; // Prevent multiple votes per session
-        }
-
-        socket.emit("vote", choice);
-        hasVoted = true;
-
-        // Show voted message and hide buttons
-        document.getElementById("vote-buttons").style.display = "none";
-        document.getElementById("voted-message").style.display = "block";
-
-        // Store vote in localStorage to persist across page reloads
-        localStorage.setItem("hasVoted", "true");
-      }
-
-      // Check if user has already voted
-      if (localStorage.getItem("hasVoted") === "true") {
-        hasVoted = true;
-        document.getElementById("vote-buttons").style.display = "none";
-        document.getElementById("voted-message").style.display = "block";
-      }
-
-      // Update vote display
-      function updateVoteDisplay(results) {
-        const goodCount = results.good || 0;
-        const badCount = results.bad || 0;
-        const total = goodCount + badCount;
-
-        document.getElementById("good-count").textContent = goodCount;
-        document.getElementById("bad-count").textContent = badCount;
-        document.getElementById(
-          "total-votes"
-        ).textContent = `Total votes: ${total}`;
-
-        // Update percentage bars
-        if (total > 0) {
-          const goodPercentage = (goodCount / total) * 100;
-          const badPercentage = (badCount / total) * 100;
-
-          document.getElementById("good-bar").style.width =
-            goodPercentage + "%";
-          document.getElementById("bad-bar").style.width = badPercentage + "%";
-        } else {
-          document.getElementById("good-bar").style.width = "0%";
-          document.getElementById("bad-bar").style.width = "0%";
-        }
-      }
 
       socket.on("reload", () => {
         console.log("Reloading page...");
@@ -304,11 +140,6 @@
           window.location.reload();
         }, 1000);
       });
-
-      // Send periodic pings to update last activity
-      setInterval(() => {
-        socket.emit("ping");
-      }, 30000);
     </script>
   </body>
 </html>

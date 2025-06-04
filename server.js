@@ -31,15 +31,6 @@ const PORT = 3000;
 // Generate server URL (still needed for console output)
 const serverUrl = `http://${localIp}:${PORT}`;
 
-// Store voting results
-let voteResults = {
-  good: 0,
-  bad: 0,
-};
-
-// Store which users have voted to prevent duplicate votes
-let votedUsers = new Set();
-
 // Serve static files from the current directory
 app.use(express.static(path.join(__dirname)));
 
@@ -90,36 +81,6 @@ io.on("connection", (socket) => {
   // Send the user their ID
   socket.emit("userId", userId);
 
-  // Send current vote results to the new client
-  socket.emit("voteResults", voteResults);
-
-  // Handle voting
-  socket.on("vote", (choice) => {
-    // Check if this user has already voted
-    if (votedUsers.has(userId)) {
-      console.log(`User ${userId} tried to vote again, ignoring`);
-      return;
-    }
-
-    // Validate vote choice
-    if (choice !== "good" && choice !== "bad") {
-      console.log(`Invalid vote choice: ${choice}`);
-      return;
-    }
-
-    // Record the vote
-    voteResults[choice]++;
-    votedUsers.add(userId);
-
-    console.log(`User ${userId} voted: ${choice}`);
-    console.log(
-      `Current results: Good=${voteResults.good}, Bad=${voteResults.bad}`
-    );
-
-    // Broadcast updated results to all clients
-    io.emit("voteResults", voteResults);
-  });
-
   // Update user status when they send a ping
   socket.on("ping", () => {
     if (connectedUsers[socket.id]) {
@@ -139,6 +100,66 @@ io.on("connection", (socket) => {
   });
 });
 
+// Modify index.html to include socket.io code and QR code
+let htmlContent = fs.readFileSync("index.html", "utf8");
+
+// Only inject the script if it's not already there
+if (!htmlContent.includes("socket.io")) {
+  // Find the position to inject before the closing body tag
+  const bodyClosePos = htmlContent.lastIndexOf("</body>");
+
+  if (bodyClosePos !== -1) {
+    const scriptToInject = `
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        
+        // Get user ID from URL or generate one
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('userId') || localStorage.getItem('userId');
+        
+        // Connect with user ID if available
+        if (userId) {
+            socket.io.opts.query = { userId };
+        }
+        
+        // Store user ID when received from server
+        socket.on('userId', (id) => {
+            localStorage.setItem('userId', id);
+        });
+        
+        socket.on('reload', () => {
+            console.log('Reloading page...');
+            window.location.reload();
+        });
+        
+        // Handle disconnection events
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server, will reload in 1 second...');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        });
+        
+        // Send periodic pings to update last activity
+        setInterval(() => {
+            socket.emit('ping');
+        }, 30000);
+    </script>
+`;
+
+    // Insert the script before the closing body tag
+    htmlContent =
+      htmlContent.substring(0, bodyClosePos) +
+      scriptToInject +
+      htmlContent.substring(bodyClosePos);
+
+    // Write the modified content back to the file
+    fs.writeFileSync("index.html", htmlContent);
+    console.log("Added auto-reload script to index.html");
+  }
+}
+
 // Start the server
 server.listen(PORT, localIp, () => {
   console.log(`Server running at http://${localIp}:${PORT}/`);
@@ -148,7 +169,4 @@ server.listen(PORT, localIp, () => {
   console.log("\nAccess the server using the URL above.");
   console.log("\nServer QR Code:");
   qrcode.generate(serverUrl, { small: true });
-
-  console.log("\n🗳️  Voting App: How's the vibe?");
-  console.log("📊 Vote results will be logged here as they come in...\n");
 });
