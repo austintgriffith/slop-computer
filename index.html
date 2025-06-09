@@ -3,58 +3,159 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Loading</title>
+    <title>Vibe Check</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        min-height: 100vh;
         margin: 0;
-        background-color: #f5f5f5;
-      }
-      .loader-wrapper {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
         text-align: center;
+        padding: 20px;
+        box-sizing: border-box;
       }
+
+      .main-container {
+        max-width: 500px;
+        width: 100%;
+      }
+
       h1 {
-        font-size: 2rem;
-        color: #333;
-        margin-bottom: 20px;
+        font-size: 3rem;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
       }
-      .content-img {
-        max-width: 300px;
-        height: auto;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+      .subtitle {
+        font-size: 1.2rem;
+        margin-bottom: 40px;
+        opacity: 0.9;
       }
-      .loader-container {
+
+      .voting-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+
+      .vote-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-bottom: 30px;
+      }
+
+      .vote-btn {
+        flex: 1;
+        max-width: 150px;
+        padding: 20px;
+        font-size: 1.5rem;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .vote-btn:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+      }
+
+      .vote-btn:hover:before {
+        left: 100%;
+      }
+
+      .vote-btn.good {
+        background: linear-gradient(45deg, #4CAF50, #8BC34A);
+        color: white;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+      }
+
+      .vote-btn.good:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+      }
+
+      .vote-btn.bad {
+        background: linear-gradient(45deg, #f44336, #ff7043);
+        color: white;
+        box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+      }
+
+      .vote-btn.bad:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6);
+      }
+
+      .vote-btn:active {
+        transform: translateY(-1px);
+      }
+
+      .vote-btn.voted {
+        transform: scale(0.95);
+        opacity: 0.8;
+      }
+
+      .results {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .result-item {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 20px;
+        border-radius: 15px;
+        backdrop-filter: blur(5px);
+      }
+
+      .result-label {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .result-count {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      .result-percentage {
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+
+      .total-votes {
+        grid-column: 1 / -1;
         text-align: center;
+        font-size: 1.1rem;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.1);
       }
-      .loader {
-        display: inline-block;
-        width: 80px;
-        height: 80px;
-      }
-      .loader:after {
-        content: " ";
-        display: block;
-        width: 64px;
-        height: 64px;
-        margin: 8px;
-        border-radius: 50%;
-        border: 6px solid #808080;
-        border-color: #808080 transparent #808080 transparent;
-        animation: loader 1.2s linear infinite;
-      }
-      @keyframes loader {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
+
       .qr-code {
         position: fixed;
         bottom: 20px;
@@ -63,28 +164,92 @@
         height: 100px;
         background-color: white;
         padding: 5px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
       }
+
       .user-counter {
         position: fixed;
         top: 20px;
         right: 20px;
-        background-color: #808080;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
         color: white;
-        padding: 10px 15px;
-        border-radius: 20px;
+        padding: 12px 18px;
+        border-radius: 25px;
         font-weight: bold;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+      }
+
+      .user-vote-status {
+        margin-top: 15px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+        font-style: italic;
+      }
+
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 2.5rem;
+        }
+        
+        .voting-section {
+          padding: 30px 20px;
+        }
+        
+        .vote-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+        
+        .vote-btn {
+          max-width: 200px;
+          width: 100%;
+        }
+        
+        .results {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   </head>
   <body>
-    <div class="loader-wrapper">
-      <h1>loading...</h1>
-      <div class="loader-container">
-        <div class="loader"></div>
+    <div class="main-container">
+      <h1>🌊 Vibe Check</h1>
+      <p class="subtitle">how's the vibe? (good vibes only zone ✨)</p>
+      
+      <div class="voting-section">
+        <div class="vote-buttons">
+          <button class="vote-btn good" onclick="vote('good')" id="good-btn">
+            😊 Good
+          </button>
+          <button class="vote-btn bad" onclick="vote('bad')" id="bad-btn">
+            😔 Bad
+          </button>
+        </div>
+        
+        <div class="results">
+          <div class="result-item">
+            <div class="result-label">Good Vibes</div>
+            <div class="result-count" id="good-count">0</div>
+            <div class="result-percentage" id="good-percentage">0%</div>
+          </div>
+          
+          <div class="result-item">
+            <div class="result-label">Bad Vibes</div>
+            <div class="result-count" id="bad-count">0</div>
+            <div class="result-percentage" id="bad-percentage">0%</div>
+          </div>
+          
+          <div class="total-votes">
+            Total Votes: <strong id="total-count">0</strong>
+          </div>
+        </div>
+        
+        <div class="user-vote-status" id="vote-status"></div>
       </div>
     </div>
 
@@ -101,7 +266,7 @@
         const qrContainer = document.getElementById("qr-code-container");
         const currentUrl = window.location.href;
 
-        // Create QR code using the library - using version 1 with L error correction for simple URLs
+        // Create QR code using the library
         const qr = qrcode(3, "L");
         qr.addData(currentUrl);
         qr.make();
@@ -122,10 +287,121 @@
       window.addEventListener("load", generateQRCode);
 
       const socket = io();
+      
+      // Storage key with timestamp to avoid conflicts
+      const STORAGE_KEY = `vibecheck_vote_${Date.now().toString().slice(-8)}`;
+      let userVote = localStorage.getItem(STORAGE_KEY);
 
       // Update user count when received from server
       socket.on("userCount", (count) => {
         document.getElementById("user-counter").textContent = `👥 ${count}`;
+      });
+
+      // Handle vote updates from server
+      socket.on("voteUpdate", (votes) => {
+        updateVoteDisplay(votes);
+      });
+
+      // Handle vote errors from server
+      socket.on("voteError", (errorMessage) => {
+        showVoteError(errorMessage);
+      });
+
+      // Vote function
+      function vote(voteType) {
+        if (voteType === "bad") {
+          // Show loading state for bad votes (they'll get an error)
+          const badBtn = document.getElementById("bad-btn");
+          badBtn.textContent = "🤔 Processing...";
+          badBtn.style.opacity = "0.7";
+          setTimeout(() => {
+            badBtn.innerHTML = "😔 Bad";
+            badBtn.style.opacity = "1";
+          }, 2000);
+        } else {
+          // Store vote locally for good votes
+          localStorage.setItem(STORAGE_KEY, voteType);
+          userVote = voteType;
+          
+          // Update UI to show user's vote
+          updateVoteButtons();
+          updateVoteStatus();
+        }
+        
+        // Send vote to server
+        socket.emit("vote", voteType);
+      }
+
+      // Show vote error with weird message
+      function showVoteError(errorMessage) {
+        const statusElement = document.getElementById("vote-status");
+        const originalContent = statusElement.textContent;
+        
+        // Show error message with red styling
+        statusElement.innerHTML = `<span style="color: #ff6b6b; animation: blink 1s infinite;">${errorMessage}</span>`;
+        
+        // Add blinking animation
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+          }
+        `;
+        document.head.appendChild(style);
+        
+        // Reset after 5 seconds
+        setTimeout(() => {
+          statusElement.innerHTML = originalContent;
+          updateVoteStatus();
+        }, 5000);
+      }
+
+      // Update vote display
+      function updateVoteDisplay(votes) {
+        document.getElementById("good-count").textContent = votes.good;
+        document.getElementById("bad-count").textContent = votes.bad;
+        document.getElementById("total-count").textContent = votes.total;
+        
+        // Calculate percentages
+        const goodPercentage = votes.total > 0 ? Math.round((votes.good / votes.total) * 100) : 0;
+        const badPercentage = votes.total > 0 ? Math.round((votes.bad / votes.total) * 100) : 0;
+        
+        document.getElementById("good-percentage").textContent = `${goodPercentage}%`;
+        document.getElementById("bad-percentage").textContent = `${badPercentage}%`;
+      }
+
+      // Update vote buttons to show user's current vote
+      function updateVoteButtons() {
+        const goodBtn = document.getElementById("good-btn");
+        const badBtn = document.getElementById("bad-btn");
+        
+        // Reset button states
+        goodBtn.classList.remove("voted");
+        badBtn.classList.remove("voted");
+        
+        // Only highlight good votes (bad votes are censored)
+        if (userVote === "good") {
+          goodBtn.classList.add("voted");
+        }
+        // Note: bad votes are never stored/highlighted since they're censored
+      }
+
+      // Update vote status message
+      function updateVoteStatus() {
+        const statusElement = document.getElementById("vote-status");
+        if (userVote === "good") {
+          statusElement.textContent = `You voted: 😊 Good (tap to change)`;
+        } else {
+          statusElement.textContent = "Cast your vote above!";
+        }
+        // Note: bad votes never show as user votes since they're censored
+      }
+
+      // Initialize UI on page load
+      window.addEventListener("load", () => {
+        updateVoteButtons();
+        updateVoteStatus();
       });
 
       socket.on("reload", () => {

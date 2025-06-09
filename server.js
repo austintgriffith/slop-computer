@@ -56,6 +56,16 @@ let onlineUsers = 0;
 // Store connected users with details
 let connectedUsers = {};
 
+// Vote storage
+let votes = {
+  good: 0,
+  bad: 0,
+  total: 0
+};
+
+// Store user votes to prevent multiple votes per user
+let userVotes = {};
+
 io.on("connection", (socket) => {
   console.log("A client connected");
   onlineUsers++;
@@ -80,6 +90,52 @@ io.on("connection", (socket) => {
 
   // Send the user their ID
   socket.emit("userId", userId);
+
+  // Send current vote counts to new connection
+  socket.emit("voteUpdate", votes);
+
+  // Handle vote submission
+  socket.on("vote", (voteType) => {
+    if (voteType === "bad") {
+      // Censor bad votes with weird errors
+      const weirdErrors = [
+        "ERROR 404: Negativity not found in this dimension 🌈",
+        "SYSTEM MALFUNCTION: Bad vibes detected, redirecting to happiness protocol ✨",
+        "COSMIC INTERFERENCE: The universe rejects your pessimism 🛸",
+        "TECHNICAL DIFFICULTY: Our servers are allergic to bad vibes 🤧",
+        "CONNECTION TIMEOUT: Your negativity is buffering... please try positivity instead 🔄",
+        "SECURITY ALERT: Bad vibes blocked by our happiness firewall 🔒",
+        "DATABASE ERROR: Table 'bad_vibes' has been deleted by the joy department 💫",
+        "NETWORK REJECTED: This network only supports good vibes transmission 📡"
+      ];
+      
+      const randomError = weirdErrors[Math.floor(Math.random() * weirdErrors.length)];
+      socket.emit("voteError", randomError);
+      console.log(`Bad vote censored from ${userId}: ${randomError}`);
+      return;
+    }
+    
+    if (voteType === "good") {
+      // Check if user has already voted
+      const existingVote = userVotes[userId];
+      
+      if (existingVote) {
+        // User is changing their vote (remove old vote)
+        votes[existingVote]--;
+        votes.total--;
+      }
+      
+      // Add new vote
+      votes[voteType]++;
+      votes.total++;
+      userVotes[userId] = voteType;
+      
+      // Broadcast updated vote counts to all clients
+      io.emit("voteUpdate", votes);
+      
+      console.log(`Vote received: ${voteType} from ${userId}. Current counts:`, votes);
+    }
+  });
 
   // Update user status when they send a ping
   socket.on("ping", () => {
