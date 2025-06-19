@@ -39,6 +39,30 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// Secret endpoint to reset votes
+app.get("/supersecretreset", (req, res) => {
+  // Reset vote counts
+  votes = {
+    good: 0,
+    bad: 0,
+    total: 0
+  };
+  
+  // Clear user votes
+  userVotes = {};
+  
+  // Broadcast updated vote counts to all connected clients
+  io.emit("voteUpdate", votes);
+  
+  console.log("Votes have been reset via /supersecretreset endpoint");
+  
+  res.json({
+    success: true,
+    message: "All votes have been reset! 🔄",
+    votes: votes
+  });
+});
+
 // Set up file watcher
 const watcher = chokidar.watch("index.html", {
   ignored: /(^|[\/\\])\../, // ignore dotfiles
