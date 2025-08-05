@@ -3,419 +3,655 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vibe Check</title>
+    <title>Message Board - Windows 95</title>
     <style>
-      body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        margin: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        text-align: center;
-        padding: 20px;
+      /* Win95 Color Palette */
+      :root {
+        --win95-gray: #c0c0c0;
+        --win95-dark-gray: #808080;
+        --win95-light-gray: #dfdfdf;
+        --win95-white: #ffffff;
+        --win95-black: #000000;
+        --win95-blue: #0000ff;
+        --win95-blue-title: #008080;
+        --win95-blue-selected: #316ac5;
+      }
+
+      * {
         box-sizing: border-box;
       }
 
-      .main-container {
-        max-width: 500px;
-        width: 100%;
-      }
-
-      h1 {
-        font-size: 3rem;
-        margin-bottom: 10px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-      }
-
-      .subtitle {
-        font-size: 1.2rem;
-        margin-bottom: 40px;
-        opacity: 0.9;
-      }
-
-      .voting-section {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 40px;
-        margin-bottom: 30px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      }
-
-      .vote-buttons {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        margin-bottom: 30px;
-      }
-
-      .vote-btn {
-        flex: 1;
-        max-width: 150px;
-        padding: 20px;
-        font-size: 1.5rem;
-        border: none;
-        border-radius: 15px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        position: relative;
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--win95-blue-title);
+        font-family: 'MS Sans Serif', sans-serif;
+        font-size: 11px;
         overflow: hidden;
       }
 
-      .vote-btn:before {
+      /* Desktop pattern */
+      body::before {
         content: '';
-        position: absolute;
+        position: fixed;
         top: 0;
-        left: -100%;
+        left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s;
+        background: 
+          radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0),
+          var(--win95-blue-title);
+        background-size: 20px 20px;
+        z-index: -1;
       }
 
-      .vote-btn:hover:before {
-        left: 100%;
+      /* Main window container */
+      .window {
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        right: 50px;
+        bottom: 80px;
+        background-color: var(--win95-gray);
+        border: 2px outset var(--win95-gray);
+        display: flex;
+        flex-direction: column;
+        box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
       }
 
-      .vote-btn.good {
-        background: linear-gradient(45deg, #4CAF50, #8BC34A);
+      /* Window title bar */
+      .title-bar {
+        height: 20px;
+        background: linear-gradient(90deg, var(--win95-blue-selected), #1e6dbb);
         color: white;
-        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-      }
-
-      .vote-btn.good:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
-      }
-
-      .vote-btn.bad {
-        background: linear-gradient(45deg, #f44336, #ff7043);
-        color: white;
-        box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
-      }
-
-      .vote-btn.bad:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6);
-      }
-
-      .vote-btn:active {
-        transform: translateY(-1px);
-      }
-
-      .vote-btn.voted {
-        transform: scale(0.95);
-        opacity: 0.8;
-      }
-
-      .results {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-top: 20px;
-      }
-
-      .result-item {
-        background: rgba(255, 255, 255, 0.15);
-        padding: 20px;
-        border-radius: 15px;
-        backdrop-filter: blur(5px);
-      }
-
-      .result-label {
-        font-size: 1.1rem;
-        margin-bottom: 10px;
-        opacity: 0.9;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-
-      .result-count {
-        font-size: 2.5rem;
+        display: flex;
+        align-items: center;
+        padding: 0 4px;
+        font-size: 11px;
         font-weight: bold;
-        margin-bottom: 5px;
+        position: relative;
       }
 
-      .result-percentage {
-        font-size: 0.9rem;
-        opacity: 0.8;
+      .title-bar-text {
+        flex: 1;
+        padding-left: 4px;
       }
 
-      .total-votes {
-        grid-column: 1 / -1;
+      .title-bar-controls {
+        display: flex;
+        gap: 2px;
+      }
+
+      .title-bar-control {
+        width: 16px;
+        height: 14px;
+        background-color: var(--win95-gray);
+        border: 1px outset var(--win95-gray);
+        font-size: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: black;
+        font-weight: bold;
+      }
+
+      .title-bar-control:active {
+        border: 1px inset var(--win95-gray);
+      }
+
+      /* Menu bar */
+      .menu-bar {
+        height: 20px;
+        background-color: var(--win95-gray);
+        border-bottom: 1px solid var(--win95-dark-gray);
+        display: flex;
+        align-items: center;
+        padding: 0 4px;
+      }
+
+      .menu-item {
+        padding: 2px 8px;
+        cursor: pointer;
+        font-size: 11px;
+      }
+
+      .menu-item:hover {
+        background-color: var(--win95-blue-selected);
+        color: white;
+      }
+
+      /* Main content area */
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 8px;
+        gap: 8px;
+        overflow: hidden;
+      }
+
+      /* Message board title */
+      .board-title {
         text-align: center;
-        font-size: 1.1rem;
-        padding: 15px;
-        background: rgba(255, 255, 255, 0.1);
-      }
-
-      .qr-code {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        width: 100px;
-        height: 100px;
-        background-color: white;
-        padding: 5px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-      }
-
-      .user-counter {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        color: white;
-        padding: 12px 18px;
-        border-radius: 25px;
+        font-size: 14px;
         font-weight: bold;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        margin-bottom: 8px;
+        color: var(--win95-black);
+      }
+
+      /* Messages container */
+      .messages-container {
+        flex: 1;
+        border: 2px inset var(--win95-gray);
+        background-color: white;
+        overflow-y: auto;
+        padding: 4px;
+        position: relative;
+      }
+
+      /* Win95 style scrollbar */
+      .messages-container::-webkit-scrollbar {
+        width: 16px;
+      }
+
+      .messages-container::-webkit-scrollbar-track {
+        background-color: var(--win95-gray);
+        border: 1px inset var(--win95-gray);
+      }
+
+      .messages-container::-webkit-scrollbar-thumb {
+        background-color: var(--win95-gray);
+        border: 1px outset var(--win95-gray);
+      }
+
+      .messages-container::-webkit-scrollbar-thumb:active {
+        border: 1px inset var(--win95-gray);
+      }
+
+      .messages-container::-webkit-scrollbar-button {
+        height: 16px;
+        background-color: var(--win95-gray);
+        border: 1px outset var(--win95-gray);
+      }
+
+      .messages-container::-webkit-scrollbar-button:active {
+        border: 1px inset var(--win95-gray);
+      }
+
+      /* Individual message */
+      .message {
+        border: 1px inset var(--win95-gray);
+        background-color: var(--win95-light-gray);
+        margin-bottom: 4px;
+        padding: 6px;
+        font-size: 11px;
+      }
+
+      .message-header {
+        font-weight: bold;
+        color: var(--win95-blue);
+        margin-bottom: 2px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .message-time {
+        font-weight: normal;
+        color: var(--win95-dark-gray);
+        font-size: 10px;
+      }
+
+      .message-body {
+        color: var(--win95-black);
+        line-height: 1.3;
+        word-wrap: break-word;
+      }
+
+      /* Form area */
+      .form-area {
+        border: 2px inset var(--win95-gray);
+        background-color: var(--win95-gray);
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .form-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .form-label {
+        font-size: 11px;
+        min-width: 50px;
+      }
+
+      /* Win95 style inputs */
+      .win95-input {
+        flex: 1;
+        height: 20px;
+        border: 2px inset var(--win95-gray);
+        background-color: white;
+        padding: 2px 4px;
+        font-family: 'MS Sans Serif', sans-serif;
+        font-size: 11px;
+        outline: none;
+      }
+
+      .win95-input:focus {
+        border: 2px inset var(--win95-dark-gray);
+      }
+
+      .win95-textarea {
+        width: 100%;
+        height: 60px;
+        border: 2px inset var(--win95-gray);
+        background-color: white;
+        padding: 4px;
+        font-family: 'MS Sans Serif', sans-serif;
+        font-size: 11px;
+        resize: none;
+        outline: none;
+      }
+
+      .win95-textarea:focus {
+        border: 2px inset var(--win95-dark-gray);
+      }
+
+      /* Win95 style button */
+      .win95-button {
+        min-width: 75px;
+        height: 23px;
+        background-color: var(--win95-gray);
+        border: 2px outset var(--win95-gray);
+        font-family: 'MS Sans Serif', sans-serif;
+        font-size: 11px;
+        cursor: pointer;
+        padding: 0 8px;
+      }
+
+      .win95-button:active {
+        border: 2px inset var(--win95-gray);
+      }
+
+      .win95-button:disabled {
+        color: var(--win95-dark-gray);
+        cursor: not-allowed;
+      }
+
+      /* Taskbar */
+      .taskbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 30px;
+        background-color: var(--win95-gray);
+        border-top: 1px solid var(--win95-light-gray);
+        display: flex;
+        align-items: center;
+        padding: 0 4px;
         z-index: 1000;
       }
 
-      .user-vote-status {
-        margin-top: 15px;
-        font-size: 0.9rem;
-        opacity: 0.8;
-        font-style: italic;
+      .start-button {
+        height: 22px;
+        background-color: var(--win95-gray);
+        border: 2px outset var(--win95-gray);
+        font-family: 'MS Sans Serif', sans-serif;
+        font-size: 11px;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 0 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
       }
 
-      @media (max-width: 600px) {
-        h1 {
-          font-size: 2.5rem;
+      .start-button:active {
+        border: 2px inset var(--win95-gray);
+      }
+
+      .taskbar-time {
+        margin-left: auto;
+        padding: 0 8px;
+        font-size: 11px;
+        border: 1px inset var(--win95-gray);
+        height: 18px;
+        display: flex;
+        align-items: center;
+        background-color: var(--win95-gray);
+      }
+
+      /* Loading indicator */
+      .loading {
+        text-align: center;
+        color: var(--win95-dark-gray);
+        font-style: italic;
+        padding: 20px;
+      }
+
+      /* Status bar */
+      .status-bar {
+        height: 20px;
+        background-color: var(--win95-gray);
+        border-top: 1px solid var(--win95-dark-gray);
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        font-size: 10px;
+      }
+
+      .status-info {
+        flex: 1;
+      }
+
+      .user-count {
+        margin-left: auto;
+        padding: 0 8px;
+        border: 1px inset var(--win95-gray);
+        background-color: var(--win95-light-gray);
+        height: 16px;
+        display: flex;
+        align-items: center;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .window {
+          top: 20px;
+          left: 20px;
+          right: 20px;
+          bottom: 50px;
         }
         
-        .voting-section {
-          padding: 30px 20px;
-        }
-        
-        .vote-buttons {
+        .form-row {
           flex-direction: column;
-          align-items: center;
+          align-items: stretch;
         }
         
-        .vote-btn {
-          max-width: 200px;
-          width: 100%;
-        }
-        
-        .results {
-          grid-template-columns: 1fr;
+        .form-label {
+          min-width: auto;
         }
       }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   </head>
   <body>
-    <div class="main-container">
-      <h1>🌊 Vibe Check</h1>
-      <p class="subtitle">how's the vibe? (good vibes only zone ✨)</p>
-      
-      <div class="voting-section">
-        <div class="vote-buttons">
-          <button class="vote-btn good" onclick="vote('good')" id="good-btn">
-            😊 Good
-          </button>
-          <button class="vote-btn bad" onclick="vote('bad')" id="bad-btn">
-            😔 Bad
-          </button>
+    <!-- Main Application Window -->
+    <div class="window">
+      <!-- Title Bar -->
+      <div class="title-bar">
+        <div class="title-bar-text">📋 Message Board v1.0</div>
+        <div class="title-bar-controls">
+          <div class="title-bar-control">_</div>
+          <div class="title-bar-control">□</div>
+          <div class="title-bar-control">×</div>
+        </div>
+      </div>
+
+      <!-- Menu Bar -->
+      <div class="menu-bar">
+        <div class="menu-item">File</div>
+        <div class="menu-item">Edit</div>
+        <div class="menu-item">View</div>
+        <div class="menu-item">Help</div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="content">
+        <div class="board-title">🗨️ Community Message Board</div>
+
+        <!-- Messages Display Area -->
+        <div class="messages-container" id="messages-container">
+          <div class="loading" id="loading">Loading messages...</div>
         </div>
         
-        <div class="results">
-          <div class="result-item">
-            <div class="result-label">Good Vibes</div>
-            <div class="result-count" id="good-count">0</div>
-            <div class="result-percentage" id="good-percentage">0%</div>
+        <!-- Message Form -->
+        <div class="form-area">
+          <div class="form-row">
+            <label class="form-label">Name:</label>
+            <input type="text" class="win95-input" id="name-input" placeholder="Enter your name" maxlength="50">
           </div>
-          
-          <div class="result-item">
-            <div class="result-label">Bad Vibes</div>
-            <div class="result-count" id="bad-count">0</div>
-            <div class="result-percentage" id="bad-percentage">0%</div>
+          <div class="form-row">
+            <label class="form-label">Message:</label>
           </div>
-          
-          <div class="total-votes">
-            Total Votes: <strong id="total-count">0</strong>
+          <textarea class="win95-textarea" id="message-input" placeholder="Type your message here... (Enter to post, Shift+Enter for new line)" maxlength="500"></textarea>
+          <div class="form-row">
+            <button class="win95-button" onclick="postMessage()" id="post-button">Post Message</button>
+            <button class="win95-button" onclick="clearForm()">Clear</button>
+            <button class="win95-button" onclick="refreshMessages()">Refresh</button>
+          </div>
           </div>
         </div>
         
-        <div class="user-vote-status" id="vote-status"></div>
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <div class="status-info" id="status-info">Ready</div>
+        <div class="user-count" id="user-count">Users: 1</div>
       </div>
     </div>
 
-    <div class="qr-code" id="qr-code-container">
-      <!-- QR code will be generated here -->
+    <!-- Taskbar -->
+    <div class="taskbar">
+      <div class="start-button">
+        <span>🪟</span>
+        Start
+      </div>
+      <div class="taskbar-time" id="taskbar-time">12:00 PM</div>
     </div>
 
-    <div class="user-counter" id="user-counter">👥 1</div>
-
+    <!-- Socket.IO -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
-      // Generate QR code with client-side library
-      function generateQRCode() {
-        const qrContainer = document.getElementById("qr-code-container");
-        const currentUrl = window.location.href;
+      const socket = io();
+      let messages = [];
+      let userName = localStorage.getItem('messageboard_username') || '';
 
-        // Create QR code using the library
-        const qr = qrcode(3, "L");
-        qr.addData(currentUrl);
-        qr.make();
+      // Set saved username if exists
+      if (userName) {
+        document.getElementById('name-input').value = userName;
+      }
 
-        // Create SVG QR code
-        qrContainer.innerHTML = qr.createSvgTag({
-          cellSize: 5,
-          margin: 4,
+      // Update taskbar time
+      function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        document.getElementById('taskbar-time').textContent = timeString;
+      }
+
+      // Update time every second
+      setInterval(updateTime, 1000);
+      updateTime();
+
+      // Socket event handlers
+      socket.on('userCount', (count) => {
+        document.getElementById('user-count').textContent = `Users: ${count}`;
+      });
+
+      socket.on('messageUpdate', (serverMessages) => {
+        messages = serverMessages;
+        renderMessages();
+      });
+
+      socket.on('messagePosted', (message) => {
+        // Message is already included in messageUpdate broadcast
+        // Just show success status
+        updateStatus('Message posted successfully!');
+        setTimeout(() => updateStatus('Ready'), 2000);
+      });
+
+      socket.on('messageError', (error) => {
+        updateStatus(`Error: ${error}`);
+        setTimeout(() => updateStatus('Ready'), 3000);
+      });
+
+      // Render messages
+      function renderMessages() {
+        const container = document.getElementById('messages-container');
+        const loading = document.getElementById('loading');
+        
+        if (loading) {
+          loading.style.display = 'none';
+        }
+
+        if (messages.length === 0) {
+          container.innerHTML = '<div class="loading">No messages yet. Be the first to post!</div>';
+          return;
+        }
+
+        const messagesHtml = messages
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+          .map(message => {
+            const date = new Date(message.timestamp);
+            const timeString = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            return `
+              <div class="message">
+                <div class="message-header">
+                  <span>${escapeHtml(message.name)}</span>
+                  <span class="message-time">${timeString}</span>
+                </div>
+                <div class="message-body">${escapeHtml(message.message)}</div>
+              </div>
+            `;
+          })
+          .join('');
+
+        container.innerHTML = messagesHtml;
+      }
+
+      // Post new message
+      function postMessage() {
+        const nameInput = document.getElementById('name-input');
+        const messageInput = document.getElementById('message-input');
+        const postButton = document.getElementById('post-button');
+        
+        const name = nameInput.value.trim();
+        const message = messageInput.value.trim();
+
+        if (!name) {
+          updateStatus('Error: Please enter your name');
+          nameInput.focus();
+          return;
+        }
+
+        if (!message) {
+          updateStatus('Error: Please enter a message');
+          messageInput.focus();
+          return;
+        }
+
+        // Save username for future use
+        localStorage.setItem('messageboard_username', name);
+
+        // Disable button and show posting status
+        postButton.disabled = true;
+        postButton.textContent = 'Posting...';
+        updateStatus('Posting message...');
+
+        // Send message to server
+        socket.emit('postMessage', {
+          name: name,
+          message: message,
+          timestamp: new Date().toISOString()
         });
 
-        // Adjust size of the SVG element
-        const svgElement = qrContainer.querySelector("svg");
-        svgElement.setAttribute("width", "100px");
-        svgElement.setAttribute("height", "100px");
-      }
+        // Clear message input
+        messageInput.value = '';
 
-      // Generate QR code on page load
-      window.addEventListener("load", generateQRCode);
-
-      const socket = io();
-      
-      // Storage key with timestamp to avoid conflicts
-      const STORAGE_KEY = `vibecheck_vote_${Date.now().toString().slice(-8)}`;
-      let userVote = localStorage.getItem(STORAGE_KEY);
-
-      // Update user count when received from server
-      socket.on("userCount", (count) => {
-        document.getElementById("user-counter").textContent = `👥 ${count}`;
-      });
-
-      // Handle vote updates from server
-      socket.on("voteUpdate", (votes) => {
-        updateVoteDisplay(votes);
-      });
-
-      // Handle vote errors from server
-      socket.on("voteError", (errorMessage) => {
-        showVoteError(errorMessage);
-      });
-
-      // Vote function
-      function vote(voteType) {
-        if (voteType === "bad") {
-          // Show loading state for bad votes (they'll get an error)
-          const badBtn = document.getElementById("bad-btn");
-          badBtn.textContent = "🤔 Processing...";
-          badBtn.style.opacity = "0.7";
-          setTimeout(() => {
-            badBtn.innerHTML = "😔 Bad";
-            badBtn.style.opacity = "1";
-          }, 2000);
-        } else {
-          // Store vote locally for good votes
-          localStorage.setItem(STORAGE_KEY, voteType);
-          userVote = voteType;
-          
-          // Update UI to show user's vote
-          updateVoteButtons();
-          updateVoteStatus();
-        }
-        
-        // Send vote to server
-        socket.emit("vote", voteType);
-      }
-
-      // Show vote error with weird message
-      function showVoteError(errorMessage) {
-        const statusElement = document.getElementById("vote-status");
-        const originalContent = statusElement.textContent;
-        
-        // Show error message with red styling
-        statusElement.innerHTML = `<span style="color: #ff6b6b; animation: blink 1s infinite;">${errorMessage}</span>`;
-        
-        // Add blinking animation
-        const style = document.createElement('style');
-        style.textContent = `
-          @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
-          }
-        `;
-        document.head.appendChild(style);
-        
-        // Reset after 5 seconds
+        // Re-enable button
         setTimeout(() => {
-          statusElement.innerHTML = originalContent;
-          updateVoteStatus();
-        }, 5000);
-      }
-
-      // Update vote display
-      function updateVoteDisplay(votes) {
-        document.getElementById("good-count").textContent = votes.good;
-        document.getElementById("bad-count").textContent = votes.bad;
-        document.getElementById("total-count").textContent = votes.total;
-        
-        // Calculate percentages
-        const goodPercentage = votes.total > 0 ? Math.round((votes.good / votes.total) * 100) : 0;
-        const badPercentage = votes.total > 0 ? Math.round((votes.bad / votes.total) * 100) : 0;
-        
-        document.getElementById("good-percentage").textContent = `${goodPercentage}%`;
-        document.getElementById("bad-percentage").textContent = `${badPercentage}%`;
-      }
-
-      // Update vote buttons to show user's current vote
-      function updateVoteButtons() {
-        const goodBtn = document.getElementById("good-btn");
-        const badBtn = document.getElementById("bad-btn");
-        
-        // Reset button states
-        goodBtn.classList.remove("voted");
-        badBtn.classList.remove("voted");
-        
-        // Only highlight good votes (bad votes are censored)
-        if (userVote === "good") {
-          goodBtn.classList.add("voted");
-        }
-        // Note: bad votes are never stored/highlighted since they're censored
-      }
-
-      // Update vote status message
-      function updateVoteStatus() {
-        const statusElement = document.getElementById("vote-status");
-        if (userVote === "good") {
-          statusElement.textContent = `You voted: 😊 Good (tap to change)`;
-        } else {
-          statusElement.textContent = "Cast your vote above!";
-        }
-        // Note: bad votes never show as user votes since they're censored
-      }
-
-      // Initialize UI on page load
-      window.addEventListener("load", () => {
-        updateVoteButtons();
-        updateVoteStatus();
-      });
-
-      socket.on("reload", () => {
-        console.log("Reloading page...");
-        window.location.reload();
-      });
-
-      // Handle disconnection events
-      socket.on("disconnect", () => {
-        console.log("Disconnected from server, will reload in 1 second...");
-        setTimeout(() => {
-          window.location.reload();
+          postButton.disabled = false;
+          postButton.textContent = 'Post Message';
         }, 1000);
+      }
+
+      // Clear form
+      function clearForm() {
+        if (confirm('Clear the form?')) {
+          document.getElementById('message-input').value = '';
+          document.getElementById('name-input').focus();
+        }
+      }
+
+      // Refresh messages
+      function refreshMessages() {
+        updateStatus('Refreshing messages...');
+        socket.emit('getMessages');
+        setTimeout(() => updateStatus('Ready'), 1000);
+      }
+
+      // Update status
+      function updateStatus(text) {
+        document.getElementById('status-info').textContent = text;
+      }
+
+      // Escape HTML to prevent XSS
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Handle Enter key in message input
+      document.getElementById('message-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          // Enter posts message (use Shift+Enter for line breaks)
+          e.preventDefault();
+          postMessage();
+        }
+        // Shift+Enter allows line breaks (default behavior)
       });
+
+      // Initialize
+      window.addEventListener('load', () => {
+        updateStatus('Connecting...');
+        socket.emit('getMessages');
+        document.getElementById('name-input').focus();
+      });
+
+      // Handle socket connection
+      socket.on('connect', () => {
+        updateStatus('Connected');
+        setTimeout(() => updateStatus('Ready'), 1000);
+      });
+
+      socket.on('disconnect', () => {
+        updateStatus('Disconnected - Reconnecting...');
+      });
+
+      // Handle window controls (just for show)
+      document.querySelectorAll('.title-bar-control').forEach((control, index) => {
+        control.addEventListener('click', () => {
+          if (index === 2) { // X button
+            if (confirm('Close Message Board?')) {
+              window.close();
+            }
+          }
+        });
+      });
+
+      // Add some sample messages if none exist (for demo)
+      setTimeout(() => {
+        if (messages.length === 0) {
+          messages = [
+            {
+              name: 'System Administrator',
+              message: 'Welcome to the Win95 Message Board! This is a nostalgic throwback to the good old days of computing. 💾',
+              timestamp: new Date(Date.now() - 60000).toISOString()
+            },
+            {
+              name: 'Clippy',
+              message: 'It looks like you\'re trying to post a message! Would you like help with that? 📎',
+              timestamp: new Date(Date.now() - 30000).toISOString()
+            }
+          ];
+          renderMessages();
+        }
+      }, 2000);
     </script>
   </body>
 </html>
