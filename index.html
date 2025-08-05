@@ -2,419 +2,1122 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vibe Check</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>sploders</title>
     <style>
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      
       body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #121212;
+        color: #ffffff;
+        touch-action: manipulation;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        height: 100vh;
+      }
+      
+      #game-container {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        max-height: 60vh;
+        aspect-ratio: 1;
+        background-color: #1e1e1e;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        margin: 10px auto 0;
+      }
+      
+      #game-board {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      
+      #game-stats-overlay {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        right: 5px;
+        display: flex;
+        justify-content: space-between;
+        z-index: 5;
+        font-size: 0.9em;
+        pointer-events: none;
+      }
+      
+      #game-stats-overlay > div {
+        background-color: rgba(0, 0, 0, 0.6);
+        padding: 3px 8px;
+        border-radius: 10px;
+      }
+      
+      .mine {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        font-size: 18px;
+        text-align: center;
+        z-index: 1;
+      }
+      
+      .powerup {
+        position: absolute;
+        width: 25px;
+        height: 25px;
+        font-size: 20px;
+        text-align: center;
+        z-index: 1;
+        filter: drop-shadow(0 0 5px gold);
+        animation: float 2s infinite ease-in-out;
+      }
+      
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+        100% { transform: translateY(0px); }
+      }
+      
+      .player {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        font-size: 24px;
+        text-align: center;
+        line-height: 30px;
+        z-index: 2;
+        transition: transform 0.1s linear, left 0.3s ease-out, top 0.3s ease-out;
+        opacity: 0.6;
+      }
+      
+      .player.dead {
+        opacity: 0.3;
+      }
+      
+      .player.current-player {
+        z-index: 3;
+        transform: scale(1.2);
+        box-shadow: 0 0 10px 5px rgba(255, 255, 0, 0.5);
+        border-radius: 50%;
+        background-color: rgba(0, 0, 0, 0.2);
+        opacity: 1;
+      }
+      
+      #qr-code-container {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        width: 100px;
+        height: 100px;
+        z-index: -1;
+        opacity: 0.5;
+        pointer-events: none;
+        transform: none;
+      }
+      
+      .explosion-particle {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background-color: #cc0000;
+        z-index: 2;
+        opacity: 0.9;
+      }
+      
+      .blood-particle {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        background-color: #cc0000;
+        z-index: 2;
+        opacity: 0.9;
+      }
+      
+      .flesh-particle {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        border-radius: 2px;
+        background-color: #ff9999;
+        z-index: 2;
+        opacity: 0.9;
+      }
+      
+      .permanent-blood-splatter {
+        position: absolute;
+        background-color: #cc0000;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        opacity: 0.8;
+        pointer-events: none;
+        animation: fade-blood 15s forwards;
+      }
+      
+      @keyframes fade-blood {
+        0% { opacity: 0.8; }
+        70% { opacity: 0.7; }
+        100% { opacity: 0; }
+      }
+      
+      .gore-chunk {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background-color: #a30000;
+        border-radius: 3px;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        opacity: 0.9;
+        pointer-events: none;
+        animation: fade-gore 12s forwards;
+      }
+      
+      @keyframes fade-gore {
+        0% { opacity: 0.9; }
+        80% { opacity: 0.7; }
+        100% { opacity: 0; }
+      }
+      
+      .explosion-wave {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 87, 34, 0.8) 0%, rgba(255, 87, 34, 0) 70%);
+        z-index: 2;
+        transform: translate(-50%, -50%);
+        animation: shockwave 0.8s ease-out forwards;
+      }
+      
+      @keyframes shockwave {
+        0% { width: 0px; height: 0px; opacity: 1; }
+        100% { width: 150px; height: 150px; opacity: 0; }
+      }
+      
+      .explosion-flash {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.3);
+        z-index: 4;
+        opacity: 0;
+        pointer-events: none;
+        animation: flash 0.3s ease-out;
+      }
+      
+      @keyframes flash {
+        0% { opacity: 0.7; }
+        100% { opacity: 0; }
+      }
+      
+      #scoreboard {
+        width: 100%;
+        max-width: 500px;
+        background-color: #2a2a2a;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 5px;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        max-height: 35vh;
+        overflow-y: auto;
+      }
+      
+      #scoreboard h2 {
+        margin-top: 0;
+        margin-bottom: 5px;
+        text-align: center;
+        font-size: 1.2em;
+      }
+      
+      .score-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 3px 0;
+        border-bottom: 1px solid #3a3a3a;
+      }
+      
+      .score-item.current-player {
+        background-color: rgba(255, 87, 34, 0.3);
+        border-radius: 4px;
+        padding: 5px;
+      }
+      
+      .current-player-tag {
+        background-color: #ff5722;
+        color: white;
+        font-size: 10px;
+        padding: 2px 4px;
+        border-radius: 4px;
+        margin-left: 5px;
+        font-weight: bold;
+      }
+      
+      #round-end {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        min-height: 100vh;
-        margin: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        text-align: center;
-        padding: 20px;
-        box-sizing: border-box;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
       }
-
-      .main-container {
-        max-width: 500px;
-        width: 100%;
+      
+      #round-end.active {
+        opacity: 1;
+        pointer-events: auto;
       }
-
-      h1 {
-        font-size: 3rem;
+      
+      #round-end h2 {
+        font-size: 24px;
         margin-bottom: 10px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
       }
-
-      .subtitle {
-        font-size: 1.2rem;
-        margin-bottom: 40px;
-        opacity: 0.9;
+      
+      #round-results {
+        margin-bottom: 20px;
+        text-align: center;
       }
-
-      .voting-section {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 40px;
-        margin-bottom: 30px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      
+      #next-round-timer {
+        margin-top: 15px;
+        font-size: 14px;
       }
-
-      .vote-buttons {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        margin-bottom: 30px;
-      }
-
-      .vote-btn {
-        flex: 1;
-        max-width: 150px;
-        padding: 20px;
-        font-size: 1.5rem;
-        border: none;
-        border-radius: 15px;
-        cursor: pointer;
-        transition: all 0.3s ease;
+      
+      .popup {
+        position: absolute;
+        background-color: rgba(255, 215, 0, 0.8);
+        color: #000;
+        padding: 5px 10px;
+        border-radius: 10px;
         font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        position: relative;
-        overflow: hidden;
+        z-index: 5;
+        animation: popup 1.5s forwards;
+        white-space: nowrap;
       }
-
-      .vote-btn:before {
+      
+      @keyframes popup {
+        0% { transform: translateY(0); opacity: 1; }
+        80% { opacity: 1; }
+        100% { transform: translateY(-40px); opacity: 0; }
+      }
+      
+      .last-man-standing {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 215, 0, 0.9);
+        color: #000;
+        padding: 10px 20px;
+        border-radius: 15px;
+        font-weight: bold;
+        font-size: 18px;
+        z-index: 6;
+        animation: pulse 2s forwards;
+        white-space: nowrap;
+        text-align: center;
+      }
+      
+      @keyframes pulse {
+        0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+        10% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        20% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        90% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      
+      @media (max-width: 600px) {
+        #game-container {
+          max-height: 60vh;
+        }
+        
+        .player {
+          width: 25px;
+          height: 25px;
+          font-size: 20px;
+          line-height: 25px;
+        }
+        
+        .mine {
+          width: 15px;
+          height: 15px;
+          font-size: 15px;
+        }
+        
+        .powerup {
+          width: 20px;
+          height: 20px;
+          font-size: 18px;
+        }
+      }
+      
+      @keyframes shake {
+        0%, 100% { transform: translate(0, 0) rotate(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translate(-3px, -3px) rotate(-1deg); }
+        20%, 40%, 60%, 80% { transform: translate(3px, 3px) rotate(1deg); }
+      }
+      
+      .preparing {
+        background-color: rgba(255, 255, 0, 0.1);
+        position: relative;
+      }
+      
+      .preparing::before {
         content: '';
         position: absolute;
         top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border: 3px solid rgba(255, 255, 0, 0.5);
+        box-shadow: 0 0 15px rgba(255, 255, 0, 0.7);
+        animation: pulse-border 2s infinite;
+        z-index: 1;
+        pointer-events: none;
       }
-
-      .vote-btn:hover:before {
-        left: 100%;
+      
+      @keyframes pulse-border {
+        0% { opacity: 0.3; }
+        50% { opacity: 0.8; }
+        100% { opacity: 0.3; }
       }
-
-      .vote-btn.good {
-        background: linear-gradient(45deg, #4CAF50, #8BC34A);
-        color: white;
-        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-      }
-
-      .vote-btn.good:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
-      }
-
-      .vote-btn.bad {
-        background: linear-gradient(45deg, #f44336, #ff7043);
-        color: white;
-        box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
-      }
-
-      .vote-btn.bad:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6);
-      }
-
-      .vote-btn:active {
-        transform: translateY(-1px);
-      }
-
-      .vote-btn.voted {
-        transform: scale(0.95);
-        opacity: 0.8;
-      }
-
-      .results {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-top: 20px;
-      }
-
-      .result-item {
-        background: rgba(255, 255, 255, 0.15);
-        padding: 20px;
-        border-radius: 15px;
-        backdrop-filter: blur(5px);
-      }
-
-      .result-label {
-        font-size: 1.1rem;
-        margin-bottom: 10px;
-        opacity: 0.9;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-
-      .result-count {
-        font-size: 2.5rem;
+      
+      #prep-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 28px;
         font-weight: bold;
-        margin-bottom: 5px;
-      }
-
-      .result-percentage {
-        font-size: 0.9rem;
-        opacity: 0.8;
-      }
-
-      .total-votes {
-        grid-column: 1 / -1;
+        color: #ffff00;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        z-index: 100;
         text-align: center;
-        font-size: 1.1rem;
-        padding: 15px;
-        background: rgba(255, 255, 255, 0.1);
+        animation: pulse-text 1s infinite;
+        pointer-events: none;
       }
-
-      .qr-code {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        width: 100px;
-        height: 100px;
-        background-color: white;
-        padding: 5px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
+      
+      @keyframes pulse-text {
+        0% { transform: translate(-50%, -50%) scale(1); }
+        50% { transform: translate(-50%, -50%) scale(1.1); }
+        100% { transform: translate(-50%, -50%) scale(1); }
       }
-
-      .user-counter {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        color: white;
-        padding: 12px 18px;
-        border-radius: 25px;
-        font-weight: bold;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
-      }
-
-      .user-vote-status {
-        margin-top: 15px;
-        font-size: 0.9rem;
+      
+      .preparing .player {
+        filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.8));
+        animation: frozen-player 2s infinite ease-in-out;
         opacity: 0.8;
-        font-style: italic;
       }
-
-      @media (max-width: 600px) {
-        h1 {
-          font-size: 2.5rem;
-        }
-        
-        .voting-section {
-          padding: 30px 20px;
-        }
-        
-        .vote-buttons {
-          flex-direction: column;
-          align-items: center;
-        }
-        
-        .vote-btn {
-          max-width: 200px;
-          width: 100%;
-        }
-        
-        .results {
-          grid-template-columns: 1fr;
-        }
+      
+      @keyframes frozen-player {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+      
+      .preparing .player.current-player {
+        animation: frozen-player-current 2s infinite ease-in-out;
+        opacity: 1;
+        transform: scale(1.2);
+        box-shadow: 0 0 10px 5px rgba(255, 255, 0, 0.5);
+        filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.8));
+      }
+      
+      @keyframes frozen-player-current {
+        0% { transform: scale(1.2); }
+        50% { transform: scale(1.3); }
+        100% { transform: scale(1.2); }
+      }
+      
+      #scoreboard::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      #scoreboard::-webkit-scrollbar-track {
+        background: #1e1e1e; 
+      }
+      
+      #scoreboard::-webkit-scrollbar-thumb {
+        background: #555; 
+        border-radius: 3px;
+      }
+      
+      #scoreboard::-webkit-scrollbar-thumb:hover {
+        background: #777; 
       }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   </head>
   <body>
-    <div class="main-container">
-      <h1>🌊 Vibe Check</h1>
-      <p class="subtitle">how's the vibe? (good vibes only zone ✨)</p>
+    <div id="game-container">
+      <div id="game-board"></div>
       
-      <div class="voting-section">
-        <div class="vote-buttons">
-          <button class="vote-btn good" onclick="vote('good')" id="good-btn">
-            😊 Good
-          </button>
-          <button class="vote-btn bad" onclick="vote('bad')" id="bad-btn">
-            😔 Bad
-          </button>
+      <div id="game-stats-overlay">
+        <div id="round-info">
+          <span id="round-number">Round 1</span> - <span id="timer">30s</span>
         </div>
-        
-        <div class="results">
-          <div class="result-item">
-            <div class="result-label">Good Vibes</div>
-            <div class="result-count" id="good-count">0</div>
-            <div class="result-percentage" id="good-percentage">0%</div>
-          </div>
-          
-          <div class="result-item">
-            <div class="result-label">Bad Vibes</div>
-            <div class="result-count" id="bad-count">0</div>
-            <div class="result-percentage" id="bad-percentage">0%</div>
-          </div>
-          
-          <div class="total-votes">
-            Total Votes: <strong id="total-count">0</strong>
-          </div>
-        </div>
-        
-        <div class="user-vote-status" id="vote-status"></div>
+        <div id="user-counter">👥 1</div>
+      </div>
+      
+      <div id="round-end">
+        <h2>Round <span id="end-round-number">1</span> Complete!</h2>
+        <div id="round-results"></div>
+        <div id="next-round-timer">Next round in 10 seconds...</div>
       </div>
     </div>
-
-    <div class="qr-code" id="qr-code-container">
-      <!-- QR code will be generated here -->
+    
+    <div id="qr-code-container"></div>
+    
+    <div id="scoreboard">
+      <h2>Scores</h2>
+      <div id="score-list"></div>
     </div>
-
-    <div class="user-counter" id="user-counter">👥 1</div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-      // Generate QR code with client-side library
-      function generateQRCode() {
-        const qrContainer = document.getElementById("qr-code-container");
-        const currentUrl = window.location.href;
-
-        // Create QR code using the library
-        const qr = qrcode(3, "L");
-        qr.addData(currentUrl);
-        qr.make();
-
-        // Create SVG QR code
-        qrContainer.innerHTML = qr.createSvgTag({
-          cellSize: 5,
-          margin: 4,
-        });
-
-        // Adjust size of the SVG element
-        const svgElement = qrContainer.querySelector("svg");
-        svgElement.setAttribute("width", "100px");
-        svgElement.setAttribute("height", "100px");
-      }
-
-      // Generate QR code on page load
-      window.addEventListener("load", generateQRCode);
-
+      // Game elements
+      const gameBoard = document.getElementById('game-board');
+      const roundNumber = document.getElementById('round-number');
+      const timer = document.getElementById('timer');
+      const userCounter = document.getElementById('user-counter');
+      const scoreList = document.getElementById('score-list');
+      const roundEnd = document.getElementById('round-end');
+      const endRoundNumber = document.getElementById('end-round-number');
+      const roundResults = document.getElementById('round-results');
+      const nextRoundTimer = document.getElementById('next-round-timer');
+      const qrCodeContainer = document.getElementById('qr-code-container');
+      
+      // Game variables
+      let players = {};
+      let mines = [];
+      let powerups = [];
+      let boardWidth = 20;
+      let boardHeight = 20;
+      let currentRound = 1;
+      let gameState = "waiting";
+      let currentPlayerId = null;
+      let persistentPlayerId = null;
+      
+      // Connect to server
       const socket = io();
       
-      // Storage key with timestamp to avoid conflicts
-      const STORAGE_KEY = `vibecheck_vote_${Date.now().toString().slice(-8)}`;
-      let userVote = localStorage.getItem(STORAGE_KEY);
+      function getPersistentPlayerId() {
+        return localStorage.getItem('playerPersistentId');
+      }
 
-      // Update user count when received from server
-      socket.on("userCount", (count) => {
-        document.getElementById("user-counter").textContent = `👥 ${count}`;
-      });
+      function savePersistentPlayerId(id) {
+        localStorage.setItem('playerPersistentId', id);
+      }
 
-      // Handle vote updates from server
-      socket.on("voteUpdate", (votes) => {
-        updateVoteDisplay(votes);
-      });
+      function savePlayerEmoji(emoji) {
+        localStorage.setItem('playerEmoji', emoji);
+      }
 
-      // Handle vote errors from server
-      socket.on("voteError", (errorMessage) => {
-        showVoteError(errorMessage);
-      });
-
-      // Vote function
-      function vote(voteType) {
-        if (voteType === "bad") {
-          // Show loading state for bad votes (they'll get an error)
-          const badBtn = document.getElementById("bad-btn");
-          badBtn.textContent = "🤔 Processing...";
-          badBtn.style.opacity = "0.7";
-          setTimeout(() => {
-            badBtn.innerHTML = "😔 Bad";
-            badBtn.style.opacity = "1";
-          }, 2000);
-        } else {
-          // Store vote locally for good votes
-          localStorage.setItem(STORAGE_KEY, voteType);
-          userVote = voteType;
+      function getPlayerEmoji() {
+        return localStorage.getItem('playerEmoji');
+      }
+      
+      function loadQRCode() {
+        const currentUrl = window.location.href;
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(currentUrl)}`;
+        qrCodeContainer.innerHTML = `<img src="${qrApiUrl}" width="100" height="100" alt="QR Code" style="display: block; width: 100%; height: 100%;">`;
+      }
+      
+      loadQRCode();
+      
+      let lastRender = 0;
+      
+      function gameLoop(timestamp) {
+        if (!lastRender) lastRender = timestamp;
+        const delta = timestamp - lastRender;
+        
+        if (delta > 50) {
+          updatePlayerPositions();
+          lastRender = timestamp;
+        }
+        
+        requestAnimationFrame(gameLoop);
+      }
+      
+      requestAnimationFrame(gameLoop);
+      
+      function updatePlayerPositions() {
+        for (const id in players) {
+          const player = players[id];
+          const playerElement = document.getElementById(`player-${id}`);
           
-          // Update UI to show user's vote
-          updateVoteButtons();
-          updateVoteStatus();
-        }
-        
-        // Send vote to server
-        socket.emit("vote", voteType);
-      }
-
-      // Show vote error with weird message
-      function showVoteError(errorMessage) {
-        const statusElement = document.getElementById("vote-status");
-        const originalContent = statusElement.textContent;
-        
-        // Show error message with red styling
-        statusElement.innerHTML = `<span style="color: #ff6b6b; animation: blink 1s infinite;">${errorMessage}</span>`;
-        
-        // Add blinking animation
-        const style = document.createElement('style');
-        style.textContent = `
-          @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
+          if (playerElement) {
+            const x = (player.x / boardWidth) * 100;
+            const y = (player.y / boardHeight) * 100;
+            
+            const currentX = parseFloat(playerElement.style.left) || 0;
+            const currentY = parseFloat(playerElement.style.top) || 0;
+            
+            if (Math.abs(currentX - x) > 0.1 || Math.abs(currentY - y) > 0.1) {
+              playerElement.style.left = `${x}%`;
+              playerElement.style.top = `${y}%`;
+            }
           }
-        `;
-        document.head.appendChild(style);
+        }
+      }
+      
+      function showPowerupPopup(player, value) {
+        const x = (player.x / boardWidth) * 100;
+        const y = (player.y / boardHeight) * 100;
         
-        // Reset after 5 seconds
+        const popup = document.createElement('div');
+        popup.className = 'popup';
+        popup.textContent = `+${value} pts`;
+        popup.style.left = `${x}%`;
+        popup.style.top = `${y}%`;
+        
+        gameBoard.appendChild(popup);
+        
         setTimeout(() => {
-          statusElement.innerHTML = originalContent;
-          updateVoteStatus();
-        }, 5000);
+          popup.remove();
+        }, 1500);
       }
-
-      // Update vote display
-      function updateVoteDisplay(votes) {
-        document.getElementById("good-count").textContent = votes.good;
-        document.getElementById("bad-count").textContent = votes.bad;
-        document.getElementById("total-count").textContent = votes.total;
+      
+      function showLastManStanding(player, bonus) {
+        const message = document.createElement('div');
+        message.className = 'last-man-standing';
+        message.innerHTML = `${player.emoji} LAST MAN STANDING!<br>+${bonus} POINTS`;
         
-        // Calculate percentages
-        const goodPercentage = votes.total > 0 ? Math.round((votes.good / votes.total) * 100) : 0;
-        const badPercentage = votes.total > 0 ? Math.round((votes.bad / votes.total) * 100) : 0;
+        gameBoard.appendChild(message);
         
-        document.getElementById("good-percentage").textContent = `${goodPercentage}%`;
-        document.getElementById("bad-percentage").textContent = `${badPercentage}%`;
+        setTimeout(() => {
+          message.remove();
+        }, 2000);
       }
-
-      // Update vote buttons to show user's current vote
-      function updateVoteButtons() {
-        const goodBtn = document.getElementById("good-btn");
-        const badBtn = document.getElementById("bad-btn");
+      
+      function renderGame(data) {
+        gameState = data.gameState;
         
-        // Reset button states
-        goodBtn.classList.remove("voted");
-        badBtn.classList.remove("voted");
-        
-        // Only highlight good votes (bad votes are censored)
-        if (userVote === "good") {
-          goodBtn.classList.add("voted");
+        if (data.hasOwnProperty('boardWidth')) {
+          boardWidth = data.boardWidth;
+          boardHeight = data.boardHeight;
         }
-        // Note: bad votes are never stored/highlighted since they're censored
-      }
-
-      // Update vote status message
-      function updateVoteStatus() {
-        const statusElement = document.getElementById("vote-status");
-        if (userVote === "good") {
-          statusElement.textContent = `You voted: 😊 Good (tap to change)`;
+        
+        if (data.hasOwnProperty('roundNumber')) {
+          currentRound = data.roundNumber;
+          roundNumber.textContent = `Round ${currentRound}`;
+          endRoundNumber.textContent = currentRound;
+        }
+        
+        if (data.hasOwnProperty('roundTimer')) {
+          timer.textContent = `${Math.ceil(data.roundTimer)}s`;
+        }
+        
+        if (data.hasOwnProperty('stateTimer')) {
+          if (gameState === 'preparing') {
+            timer.textContent = `${Math.ceil(data.stateTimer)}s to start`;
+          } else if (gameState === 'roundEnd') {
+            nextRoundTimer.textContent = `Next round in ${Math.ceil(data.stateTimer)} seconds...`;
+          }
+        }
+        
+        if (data.hasOwnProperty('players')) {
+          players = data.players;
+          
+          const existingPlayerElements = document.querySelectorAll('.player');
+          existingPlayerElements.forEach(element => {
+            const id = element.id.replace('player-', '');
+            if (!players[id]) {
+              element.remove();
+            }
+          });
+          
+          for (const id in players) {
+            const player = players[id];
+            let playerElement = document.getElementById(`player-${id}`);
+            
+            if (!playerElement) {
+              playerElement = document.createElement('div');
+              playerElement.id = `player-${id}`;
+              playerElement.className = 'player';
+              playerElement.textContent = player.emoji;
+              gameBoard.appendChild(playerElement);
+            }
+            
+            const x = (player.x / boardWidth) * 100;
+            const y = (player.y / boardHeight) * 100;
+            playerElement.style.left = `${x}%`;
+            playerElement.style.top = `${y}%`;
+            
+            if (id === currentPlayerId) {
+              playerElement.classList.add('current-player');
+            } else {
+              playerElement.classList.remove('current-player');
+            }
+            
+            if (!player.alive) {
+              playerElement.classList.add('dead');
+              
+              if (!playerElement.dataset.exploded) {
+                playerElement.dataset.exploded = 'true';
+                createExplosionEffect(player.x, player.y, player.emoji);
+                playerElement.style.opacity = '0';
+                playerElement.style.visibility = 'hidden';
+              }
+            } else {
+              playerElement.classList.remove('dead');
+              delete playerElement.dataset.exploded;
+              playerElement.style.opacity = '0.6';
+              playerElement.style.visibility = 'visible';
+            }
+          }
+        }
+        
+        if (data.hasOwnProperty('mines')) {
+          mines = data.mines;
+          
+          const existingMines = document.querySelectorAll('.mine');
+          existingMines.forEach(element => element.remove());
+          
+          if (gameState === 'preparing' || gameState === 'playing') {
+            mines.forEach((mine, index) => {
+              const mineElement = document.createElement('div');
+              mineElement.className = 'mine';
+              mineElement.id = `mine-${index}`;
+              mineElement.textContent = '💣';
+              
+              const x = (mine.x / boardWidth) * 100;
+              const y = (mine.y / boardHeight) * 100;
+              mineElement.style.left = `${x}%`;
+              mineElement.style.top = `${y}%`;
+              
+              gameBoard.appendChild(mineElement);
+            });
+          }
+        }
+        
+        if (data.hasOwnProperty('powerups')) {
+          powerups = data.powerups;
+          
+          const existingPowerups = document.querySelectorAll('.powerup');
+          existingPowerups.forEach(element => element.remove());
+          
+          if (gameState === 'playing') {
+            powerups.forEach((powerup, index) => {
+              const powerupElement = document.createElement('div');
+              powerupElement.className = 'powerup';
+              powerupElement.id = `powerup-${index}`;
+              powerupElement.textContent = powerup.type;
+              
+              const x = (powerup.x / boardWidth) * 100;
+              const y = (powerup.y / boardHeight) * 100;
+              powerupElement.style.left = `${x}%`;
+              powerupElement.style.top = `${y}%`;
+              
+              gameBoard.appendChild(powerupElement);
+            });
+          }
+        }
+        
+        if (data.hasOwnProperty('scores')) {
+          scoreList.innerHTML = '';
+          
+          const scoresArray = Object.entries(data.scores).map(([id, score]) => {
+            return { id, score, emoji: players[id]?.emoji || '🐾' };
+          });
+          
+          scoresArray.sort((a, b) => b.score - a.score);
+          
+          scoresArray.forEach(({ id, score, emoji }) => {
+            const scoreItem = document.createElement('div');
+            scoreItem.className = 'score-item';
+            
+            if (id === currentPlayerId) {
+              scoreItem.classList.add('current-player');
+            }
+            
+            let playerName = `${emoji} Player`;
+            if (id === currentPlayerId) {
+              playerName = `${emoji} <span class="current-player-tag">YOU</span>`;
+            }
+            
+            scoreItem.innerHTML = `
+              <span>${playerName}</span>
+              <span>${score} points</span>
+            `;
+            scoreList.appendChild(scoreItem);
+          });
+        }
+        
+        if (gameState === 'roundEnd') {
+          roundEnd.classList.add('active');
+          
+          const survivors = Object.values(players).filter(p => p.alive);
+          if (survivors.length === 1 && Object.keys(players).length > 1) {
+            const survivor = survivors[0];
+            let survivorDisplay = `${survivor.emoji}`;
+            
+            if (survivor.id === currentPlayerId) {
+              survivorDisplay += " (YOU)";
+            }
+            
+            roundResults.innerHTML = `
+              <p>${survivorDisplay} is the Last Man Standing!</p>
+              <p>BONUS: +200 points!</p>
+            `;
+          } else if (survivors.length > 0) {
+            const survivorEmojis = survivors.map(p => {
+              return p.id === currentPlayerId ? 
+                `${p.emoji} (YOU)` : p.emoji;
+            }).join(' ');
+            
+            roundResults.innerHTML = `
+              <p>${survivors.length} player${survivors.length > 1 ? 's' : ''} survived!</p>
+              <p>Survivors: ${survivorEmojis}</p>
+            `;
+          } else {
+            roundResults.innerHTML = `
+              <p>Everyone was blown up! 💥</p>
+            `;
+          }
         } else {
-          statusElement.textContent = "Cast your vote above!";
+          roundEnd.classList.remove('active');
         }
-        // Note: bad votes never show as user votes since they're censored
+        
+        if (gameState === 'preparing') {
+          gameBoard.classList.add('preparing');
+          
+          const prepMessage = document.getElementById('prep-message') || (() => {
+            const msg = document.createElement('div');
+            msg.id = 'prep-message';
+            msg.style.position = 'absolute';
+            msg.style.top = '50%';
+            msg.style.left = '50%';
+            msg.style.transform = 'translate(-50%, -50%)';
+            msg.style.fontSize = '24px';
+            msg.style.fontWeight = 'bold';
+            msg.style.color = 'white';
+            msg.style.textShadow = '0 0 10px rgba(0,0,0,0.8)';
+            msg.style.zIndex = '100';
+            gameBoard.appendChild(msg);
+            return msg;
+          })();
+          
+          if (data.stateTimer) {
+            prepMessage.textContent = `GET READY! ${Math.ceil(data.stateTimer)}`;
+          } else {
+            prepMessage.textContent = 'GET READY!';
+          }
+        } else {
+          gameBoard.classList.remove('preparing');
+          const prepMessage = document.getElementById('prep-message');
+          if (prepMessage) prepMessage.remove();
+        }
       }
-
-      // Initialize UI on page load
-      window.addEventListener("load", () => {
-        updateVoteButtons();
-        updateVoteStatus();
+      
+      socket.on('connect', () => {
+        currentPlayerId = socket.id;
+        console.log("Connected as player: " + currentPlayerId);
+        
+        persistentPlayerId = getPersistentPlayerId();
+        
+        socket.emit('registerPlayer', {
+          persistentId: persistentPlayerId
+        });
       });
-
-      socket.on("reload", () => {
-        console.log("Reloading page...");
+      
+      socket.on('playerRegistered', (data) => {
+        persistentPlayerId = data.persistentId;
+        savePlayerEmoji(data.emoji);
+        savePersistentPlayerId(persistentPlayerId);
+        console.log("Registered with persistent ID: " + persistentPlayerId);
+      });
+      
+      socket.on('gameState', (data) => {
+        renderGame(data);
+      });
+      
+      socket.on('userCount', (count) => {
+        userCounter.textContent = `👥 ${count}`;
+      });
+      
+      socket.on('powerupCollected', (data) => {
+        const player = players[data.playerId];
+        if (player) {
+          showPowerupPopup(player, data.value);
+        }
+      });
+      
+      socket.on('lastManStanding', (data) => {
+        const player = players[data.playerId];
+        if (player) {
+          showLastManStanding(player, data.bonus);
+        }
+      });
+      
+      socket.on('reload', () => {
+        console.log('Reloading page...');
         window.location.reload();
       });
-
-      // Handle disconnection events
-      socket.on("disconnect", () => {
-        console.log("Disconnected from server, will reload in 1 second...");
+      
+      socket.on('disconnect', () => {
+        console.log('Disconnected from server, will reload in 1 second...');
         setTimeout(() => {
           window.location.reload();
         }, 1000);
+      });
+      
+      function createExplosionEffect(x, y, emoji = '💥') {
+        const screenX = (x / boardWidth) * 100;
+        const screenY = (y / boardHeight) * 100;
+        
+        const isCurrentPlayer = Object.values(players).some(p => 
+          p.emoji === emoji && p.id === currentPlayerId
+        );
+        
+        const shockwave = document.createElement('div');
+        shockwave.className = 'explosion-wave';
+        shockwave.style.left = `${screenX}%`;
+        shockwave.style.top = `${screenY}%`;
+        gameBoard.appendChild(shockwave);
+        
+        const flash = document.createElement('div');
+        flash.className = 'explosion-flash';
+        gameBoard.appendChild(flash);
+        setTimeout(() => flash.remove(), 300);
+        
+        const particleCount = isCurrentPlayer ? 100 : 70;
+        
+        for (let i = 0; i < 20; i++) {
+          const shortParticle = document.createElement('div');
+          shortParticle.className = Math.random() > 0.5 ? 'blood-particle' : 'flesh-particle';
+          
+          const size = 1 + Math.random() * 4;
+          shortParticle.style.width = `${size}px`;
+          shortParticle.style.height = `${size}px`;
+          
+          const red = 130 + Math.floor(Math.random() * 125);
+          const alpha = 0.7 + Math.random() * 0.3;
+          
+          if (shortParticle.className === 'blood-particle') {
+            shortParticle.style.backgroundColor = `rgba(${red}, ${Math.floor(Math.random() * 15)}, 0, ${alpha})`;
+          } else {
+            const green = Math.floor(red/4 + Math.random() * 25);
+            shortParticle.style.backgroundColor = `rgba(${red}, ${green}, ${Math.floor(green/3)}, ${alpha})`;
+          }
+          
+          shortParticle.style.left = `${screenX}%`;
+          shortParticle.style.top = `${screenY}%`;
+          
+          gameBoard.appendChild(shortParticle);
+          
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 5 + Math.random() * 15;
+          const velocity = 0.5 + Math.random() * 0.8;
+          
+          const finalX = screenX + Math.cos(angle) * distance / (4 / velocity);
+          const finalY = screenY + Math.sin(angle) * distance / (4 / velocity);
+          
+          const duration = 0.1 + Math.random() * 0.3;
+          
+          shortParticle.animate([
+            { 
+              left: `${screenX}%`,
+              top: `${screenY}%`,
+              transform: 'translate(-50%, -50%) scale(0.8)',
+              opacity: 1
+            },
+            { 
+              left: `${finalX}%`, 
+              top: `${finalY}%`,
+              transform: 'translate(-50%, -50%) scale(1.2)',
+              opacity: 0.9
+            }
+          ], {
+            duration: duration * 1000,
+            easing: 'cubic-bezier(0.2, 0.9, 0.3, 1.0)',
+            fill: 'forwards'
+          });
+          
+          setTimeout(() => {
+            shortParticle.remove();
+          }, 3000 + Math.random() * 3000);
+        }
+        
+        for (let i = 0; i < 12; i++) {
+          const baseAngle = (i / 12) * Math.PI * 2;
+          const angleVariation = (Math.random() * 0.5 - 0.25);
+          const angle = baseAngle + angleVariation;
+          
+          const distance = 20 + Math.random() * 70;
+          const velocity = 0.8 + Math.random() * 1.2;
+          
+          const finalX = screenX + Math.cos(angle) * distance / (2 / velocity);
+          const finalY = screenY + Math.sin(angle) * distance / (2 / velocity);
+          
+          const splatter = document.createElement('div');
+          splatter.className = 'permanent-blood-splatter';
+          
+          const size = 2 + Math.random() * 12;
+          splatter.style.width = `${size}px`;
+          splatter.style.height = `${size}px`;
+          
+          const randomShape = Math.random();
+          if (randomShape > 0.6) {
+            const borderRadius = `${30 + Math.random() * 70}% ${Math.random() * 50}% ${Math.random() * 60}% ${30 + Math.random() * 70}%`;
+            splatter.style.borderRadius = borderRadius;
+          }
+          
+          const red = 140 + Math.floor(Math.random() * 115);
+          const green = Math.floor(Math.random() * 20);
+          splatter.style.backgroundColor = `rgb(${red}, ${green}, 0)`;
+          
+          splatter.style.left = `${screenX}%`;
+          splatter.style.top = `${screenY}%`;
+          
+          gameBoard.appendChild(splatter);
+          
+          const animDuration = (0.2 + Math.random() * 0.5) / velocity;
+          
+          const midX = screenX + Math.cos(angle) * distance / 4;
+          const midY = screenY + Math.sin(angle) * distance / 4;
+          const midOffsetX = (Math.random() * 10) - 5;
+          const midOffsetY = (Math.random() * 10) - 5;
+          
+          splatter.animate([
+            { 
+              left: `${screenX}%`,
+              top: `${screenY}%`,
+              transform: 'translate(-50%, -50%) scale(0.5) rotate(0deg)',
+              opacity: 1
+            },
+            { 
+              left: `${midX + midOffsetX}%`, 
+              top: `${midY + midOffsetY}%`,
+              transform: `translate(-50%, -50%) scale(${0.7 + Math.random() * 0.6}) rotate(${Math.random() * 180}deg)`,
+              opacity: 0.9
+            },
+            { 
+              left: `${finalX}%`, 
+              top: `${finalY}%`,
+              transform: `translate(-50%, -50%) scale(1) rotate(${Math.random() * 360}deg)`,
+              opacity: 0.8
+            }
+          ], {
+            duration: animDuration * 1000,
+            easing: 'cubic-bezier(0.3, 0.8, 0.5, 1.0)',
+            fill: 'forwards'
+          });
+          
+          if (Math.random() < 0.7) {
+            setTimeout(() => {
+              const chunk = document.createElement('div');
+              chunk.className = 'gore-chunk';
+              
+              const chunkSize = 2 + Math.random() * 7;
+              chunk.style.width = `${chunkSize}px`;
+              chunk.style.height = `${chunkSize}px`;
+              
+              if (Math.random() > 0.5) {
+                const borderRadius = `${Math.random() * 50}% ${Math.random() * 50}% ${Math.random() * 50}% ${Math.random() * 50}%`;
+                chunk.style.borderRadius = borderRadius;
+              }
+              
+              chunk.style.left = `${screenX}%`;
+              chunk.style.top = `${screenY}%`;
+              
+              const chunkAngleVariation = (Math.random() * 0.8 - 0.4);
+              const chunkAngle = angle + chunkAngleVariation;
+              const chunkVelocity = 0.5 + Math.random() * 1.5;
+              const chunkDistance = distance * (0.6 + Math.random() * 0.8);
+              const chunkX = screenX + Math.cos(chunkAngle) * chunkDistance / (2 / chunkVelocity);
+              const chunkY = screenY + Math.sin(chunkAngle) * chunkDistance / (2 / chunkVelocity);
+              
+              const chunkRed = 120 + Math.floor(Math.random() * 100);
+              const chunkGreen = 20 + Math.floor(Math.random() * 40);
+              const chunkBlue = Math.floor(Math.random() * 15);
+              chunk.style.backgroundColor = `rgb(${chunkRed}, ${chunkGreen}, ${chunkBlue})`;
+              
+              gameBoard.appendChild(chunk);
+              
+              const chunkAnimDuration = (0.25 + Math.random() * 0.6) / chunkVelocity;
+              const chunkMidX = screenX + Math.cos(chunkAngle) * chunkDistance / 3;
+              const chunkMidY = screenY + Math.sin(chunkAngle) * chunkDistance / 3;
+              const chunkMidOffsetX = (Math.random() * 15) - 7.5;
+              const chunkMidOffsetY = (Math.random() * 15) - 7.5;
+              
+              chunk.animate([
+                { 
+                  left: `${screenX}%`,
+                  top: `${screenY}%`,
+                  transform: 'translate(-50%, -50%) rotate(0deg) scale(0.8)',
+                  opacity: 1
+                },
+                { 
+                  left: `${chunkMidX + chunkMidOffsetX}%`,
+                  top: `${chunkMidY + chunkMidOffsetY}%`,
+                  transform: `translate(-50%, -50%) rotate(${Math.random() * 180}deg) scale(1)`,
+                  opacity: 0.95
+                },
+                { 
+                  left: `${chunkX}%`, 
+                  top: `${chunkY}%`,
+                  transform: `translate(-50%, -50%) rotate(${Math.random() * 360}deg) scale(${0.8 + Math.random() * 0.4})`,
+                  opacity: 0.9
+                }
+              ], {
+                duration: chunkAnimDuration * 1000,
+                easing: Math.random() > 0.5 ? 'cubic-bezier(0.5, 0.9, 0.2, 1.2)' : 'cubic-bezier(0.2, 0.8, 0.3, 1.0)',
+                fill: 'forwards'
+              });
+              
+              setTimeout(() => {
+                chunk.remove();
+              }, 8000 + Math.random() * 6000);
+            }, i * 20 + Math.random() * 80);
+          }
+          
+          setTimeout(() => {
+            splatter.remove();
+          }, 10000 + Math.random() * 8000);
+        }
+        
+        gameBoard.style.animation = 'none';
+        void gameBoard.offsetWidth;
+        const shakeIntensity = Math.random() > 0.5 ? '0.7s' : '0.9s';
+        gameBoard.style.animation = `shake ${shakeIntensity} cubic-bezier(.36,.07,.19,.97) both`;
+        
+        setTimeout(() => {
+          shockwave.remove();
+        }, 800);
+      }
+      
+      socket.on("playerExploded", (data) => {
+        const player = players[data.playerId];
+        const playerEmoji = player ? player.emoji : null;
+        
+        createExplosionEffect(data.x, data.y, playerEmoji);
+      });
+      
+      socket.on('powerupCollected', (data) => {
+        const player = players[data.playerId];
+        if (player) {
+          showPowerupPopup(player, data.value);
+        }
       });
     </script>
   </body>
