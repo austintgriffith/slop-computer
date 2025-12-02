@@ -43,8 +43,10 @@ app.get("/", (req, res) => {
 app.get("/supersecretreset", (req, res) => {
   // Reset vote counts
   votes = {
-    good: 0,
-    bad: 0,
+    hellaShort: 0,
+    short: 0,
+    long: 0,
+    hellaLong: 0,
     total: 0
   };
   
@@ -82,8 +84,10 @@ let connectedUsers = {};
 
 // Vote storage
 let votes = {
-  good: 0,
-  bad: 0,
+  hellaShort: 0,
+  short: 0,
+  long: 0,
+  hellaLong: 0,
   total: 0
 };
 
@@ -120,45 +124,32 @@ io.on("connection", (socket) => {
 
   // Handle vote submission
   socket.on("vote", (voteType) => {
-    if (voteType === "bad") {
-      // Censor bad votes with weird errors
-      const weirdErrors = [
-        "ERROR 404: Negativity not found in this dimension 🌈",
-        "SYSTEM MALFUNCTION: Bad vibes detected, redirecting to happiness protocol ✨",
-        "COSMIC INTERFERENCE: The universe rejects your pessimism 🛸",
-        "TECHNICAL DIFFICULTY: Our servers are allergic to bad vibes 🤧",
-        "CONNECTION TIMEOUT: Your negativity is buffering... please try positivity instead 🔄",
-        "SECURITY ALERT: Bad vibes blocked by our happiness firewall 🔒",
-        "DATABASE ERROR: Table 'bad_vibes' has been deleted by the joy department 💫",
-        "NETWORK REJECTED: This network only supports good vibes transmission 📡"
-      ];
-      
-      const randomError = weirdErrors[Math.floor(Math.random() * weirdErrors.length)];
-      socket.emit("voteError", randomError);
-      console.log(`Bad vote censored from ${userId}: ${randomError}`);
+    // Valid vote types for Fartcoin
+    const validVotes = ["hellaShort", "short", "long", "hellaLong"];
+    
+    if (!validVotes.includes(voteType)) {
+      socket.emit("voteError", "Invalid vote type! 🚫");
       return;
     }
     
-    if (voteType === "good") {
-      // Check if user has already voted
-      const existingVote = userVotes[userId];
-      
-      if (existingVote) {
-        // User is changing their vote (remove old vote)
-        votes[existingVote]--;
-        votes.total--;
-      }
-      
-      // Add new vote
-      votes[voteType]++;
-      votes.total++;
-      userVotes[userId] = voteType;
-      
-      // Broadcast updated vote counts to all clients
-      io.emit("voteUpdate", votes);
-      
-      console.log(`Vote received: ${voteType} from ${userId}. Current counts:`, votes);
+    // Check if user has already voted
+    const existingVote = userVotes[userId];
+    
+    if (existingVote) {
+      // User is changing their vote (remove old vote)
+      votes[existingVote]--;
+      votes.total--;
     }
+    
+    // Add new vote
+    votes[voteType]++;
+    votes.total++;
+    userVotes[userId] = voteType;
+    
+    // Broadcast updated vote counts to all clients
+    io.emit("voteUpdate", votes);
+    
+    console.log(`Vote received: ${voteType} from ${userId}. Current counts:`, votes);
   });
 
   // Update user status when they send a ping

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vibe Check</title>
+    <title>Fartcoin Vote</title>
     <style>
       body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -47,17 +47,19 @@
       }
 
       .vote-buttons {
-        display: flex;
-        gap: 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
         justify-content: center;
         margin-bottom: 30px;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
       }
 
       .vote-btn {
-        flex: 1;
-        max-width: 150px;
-        padding: 20px;
-        font-size: 1.5rem;
+        padding: 15px 10px;
+        font-size: 1.1rem;
         border: none;
         border-radius: 15px;
         cursor: pointer;
@@ -67,6 +69,7 @@
         letter-spacing: 1px;
         position: relative;
         overflow: hidden;
+        min-height: 60px;
       }
 
       .vote-btn:before {
@@ -84,26 +87,48 @@
         left: 100%;
       }
 
-      .vote-btn.good {
-        background: linear-gradient(45deg, #4CAF50, #8BC34A);
-        color: white;
-        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-      }
-
-      .vote-btn.good:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
-      }
-
-      .vote-btn.bad {
-        background: linear-gradient(45deg, #f44336, #ff7043);
+      .vote-btn.hella-short {
+        background: linear-gradient(45deg, #f44336, #d32f2f);
         color: white;
         box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
       }
 
-      .vote-btn.bad:hover {
+      .vote-btn.hella-short:hover {
         transform: translateY(-3px);
         box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6);
+      }
+
+      .vote-btn.short {
+        background: linear-gradient(45deg, #ff9800, #f57c00);
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+      }
+
+      .vote-btn.short:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(255, 152, 0, 0.6);
+      }
+
+      .vote-btn.long {
+        background: linear-gradient(45deg, #4CAF50, #388e3c);
+        color: white;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+      }
+
+      .vote-btn.long:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+      }
+
+      .vote-btn.hella-long {
+        background: linear-gradient(45deg, #2196f3, #1976d2);
+        color: white;
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+      }
+
+      .vote-btn.hella-long:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
       }
 
       .vote-btn:active {
@@ -111,14 +136,19 @@
       }
 
       .vote-btn.voted {
-        transform: scale(0.95);
-        opacity: 0.8;
+        opacity: 1;
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      }
+
+      .vote-btn.not-voted {
+        opacity: 0.5;
       }
 
       .results {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 20px;
+        gap: 15px;
         margin-top: 20px;
       }
 
@@ -200,12 +230,11 @@
         }
         
         .vote-buttons {
-          flex-direction: column;
-          align-items: center;
+          grid-template-columns: 1fr;
+          max-width: 250px;
         }
         
         .vote-btn {
-          max-width: 200px;
           width: 100%;
         }
         
@@ -218,30 +247,48 @@
   </head>
   <body>
     <div class="main-container">
-      <h1>🌊 Vibe Check</h1>
-      <p class="subtitle">how's the vibe? (good vibes only zone ✨)</p>
+      <h1>💨 Fartcoin Vote</h1>
+      <p class="subtitle">Fartcoin: long or short? 🚀📉</p>
       
       <div class="voting-section">
         <div class="vote-buttons">
-          <button class="vote-btn good" onclick="vote('good')" id="good-btn">
-            😊 Good
+          <button class="vote-btn hella-short" onclick="vote('hellaShort')" id="hella-short-btn">
+            📉 Hella Short
           </button>
-          <button class="vote-btn bad" onclick="vote('bad')" id="bad-btn">
-            😔 Bad
+          <button class="vote-btn short" onclick="vote('short')" id="short-btn">
+            📊 Short
+          </button>
+          <button class="vote-btn long" onclick="vote('long')" id="long-btn">
+            📈 Long
+          </button>
+          <button class="vote-btn hella-long" onclick="vote('hellaLong')" id="hella-long-btn">
+            🚀 Hella Long
           </button>
         </div>
         
         <div class="results">
           <div class="result-item">
-            <div class="result-label">Good Vibes</div>
-            <div class="result-count" id="good-count">0</div>
-            <div class="result-percentage" id="good-percentage">0%</div>
+            <div class="result-label">Hella Short</div>
+            <div class="result-count" id="hella-short-count">0</div>
+            <div class="result-percentage" id="hella-short-percentage">0%</div>
           </div>
           
           <div class="result-item">
-            <div class="result-label">Bad Vibes</div>
-            <div class="result-count" id="bad-count">0</div>
-            <div class="result-percentage" id="bad-percentage">0%</div>
+            <div class="result-label">Short</div>
+            <div class="result-count" id="short-count">0</div>
+            <div class="result-percentage" id="short-percentage">0%</div>
+          </div>
+          
+          <div class="result-item">
+            <div class="result-label">Long</div>
+            <div class="result-count" id="long-count">0</div>
+            <div class="result-percentage" id="long-percentage">0%</div>
+          </div>
+          
+          <div class="result-item">
+            <div class="result-label">Hella Long</div>
+            <div class="result-count" id="hella-long-count">0</div>
+            <div class="result-percentage" id="hella-long-percentage">0%</div>
           </div>
           
           <div class="total-votes">
@@ -289,7 +336,7 @@
       const socket = io();
       
       // Storage key with timestamp to avoid conflicts
-      const STORAGE_KEY = `vibecheck_vote_${Date.now().toString().slice(-8)}`;
+      const STORAGE_KEY = `fartcoin_vote_${Date.now().toString().slice(-8)}`;
       let userVote = localStorage.getItem(STORAGE_KEY);
 
       // Update user count when received from server
@@ -299,6 +346,7 @@
 
       // Handle vote updates from server
       socket.on("voteUpdate", (votes) => {
+        console.log("Received vote update from server:", votes);
         updateVoteDisplay(votes);
       });
 
@@ -309,26 +357,18 @@
 
       // Vote function
       function vote(voteType) {
-        if (voteType === "bad") {
-          // Show loading state for bad votes (they'll get an error)
-          const badBtn = document.getElementById("bad-btn");
-          badBtn.textContent = "🤔 Processing...";
-          badBtn.style.opacity = "0.7";
-          setTimeout(() => {
-            badBtn.innerHTML = "😔 Bad";
-            badBtn.style.opacity = "1";
-          }, 2000);
-        } else {
-          // Store vote locally for good votes
-          localStorage.setItem(STORAGE_KEY, voteType);
-          userVote = voteType;
-          
-          // Update UI to show user's vote
-          updateVoteButtons();
-          updateVoteStatus();
-        }
+        console.log("Vote button clicked:", voteType);
+        
+        // Store vote locally
+        localStorage.setItem(STORAGE_KEY, voteType);
+        userVote = voteType;
+        
+        // Update UI to show user's vote
+        updateVoteButtons();
+        updateVoteStatus();
         
         // Send vote to server
+        console.log("Sending vote to server:", voteType);
         socket.emit("vote", voteType);
       }
 
@@ -359,43 +399,75 @@
 
       // Update vote display
       function updateVoteDisplay(votes) {
-        document.getElementById("good-count").textContent = votes.good;
-        document.getElementById("bad-count").textContent = votes.bad;
+        document.getElementById("hella-short-count").textContent = votes.hellaShort;
+        document.getElementById("short-count").textContent = votes.short;
+        document.getElementById("long-count").textContent = votes.long;
+        document.getElementById("hella-long-count").textContent = votes.hellaLong;
         document.getElementById("total-count").textContent = votes.total;
         
         // Calculate percentages
-        const goodPercentage = votes.total > 0 ? Math.round((votes.good / votes.total) * 100) : 0;
-        const badPercentage = votes.total > 0 ? Math.round((votes.bad / votes.total) * 100) : 0;
+        const hellaShortPercentage = votes.total > 0 ? Math.round((votes.hellaShort / votes.total) * 100) : 0;
+        const shortPercentage = votes.total > 0 ? Math.round((votes.short / votes.total) * 100) : 0;
+        const longPercentage = votes.total > 0 ? Math.round((votes.long / votes.total) * 100) : 0;
+        const hellaLongPercentage = votes.total > 0 ? Math.round((votes.hellaLong / votes.total) * 100) : 0;
         
-        document.getElementById("good-percentage").textContent = `${goodPercentage}%`;
-        document.getElementById("bad-percentage").textContent = `${badPercentage}%`;
+        document.getElementById("hella-short-percentage").textContent = `${hellaShortPercentage}%`;
+        document.getElementById("short-percentage").textContent = `${shortPercentage}%`;
+        document.getElementById("long-percentage").textContent = `${longPercentage}%`;
+        document.getElementById("hella-long-percentage").textContent = `${hellaLongPercentage}%`;
       }
 
       // Update vote buttons to show user's current vote
       function updateVoteButtons() {
-        const goodBtn = document.getElementById("good-btn");
-        const badBtn = document.getElementById("bad-btn");
+        const hellaShortBtn = document.getElementById("hella-short-btn");
+        const shortBtn = document.getElementById("short-btn");
+        const longBtn = document.getElementById("long-btn");
+        const hellaLongBtn = document.getElementById("hella-long-btn");
         
-        // Reset button states
-        goodBtn.classList.remove("voted");
-        badBtn.classList.remove("voted");
+        const allButtons = [hellaShortBtn, shortBtn, longBtn, hellaLongBtn];
         
-        // Only highlight good votes (bad votes are censored)
-        if (userVote === "good") {
-          goodBtn.classList.add("voted");
+        // Reset all button states
+        allButtons.forEach(btn => {
+          btn.classList.remove("voted", "not-voted");
+        });
+        
+        // If user has voted, highlight selected and dim others
+        if (userVote) {
+          allButtons.forEach(btn => {
+            btn.classList.add("not-voted");
+          });
+          
+          // Highlight user's current vote
+          if (userVote === "hellaShort") {
+            hellaShortBtn.classList.remove("not-voted");
+            hellaShortBtn.classList.add("voted");
+          } else if (userVote === "short") {
+            shortBtn.classList.remove("not-voted");
+            shortBtn.classList.add("voted");
+          } else if (userVote === "long") {
+            longBtn.classList.remove("not-voted");
+            longBtn.classList.add("voted");
+          } else if (userVote === "hellaLong") {
+            hellaLongBtn.classList.remove("not-voted");
+            hellaLongBtn.classList.add("voted");
+          }
         }
-        // Note: bad votes are never stored/highlighted since they're censored
       }
 
       // Update vote status message
       function updateVoteStatus() {
         const statusElement = document.getElementById("vote-status");
-        if (userVote === "good") {
-          statusElement.textContent = `You voted: 😊 Good (tap to change)`;
+        if (userVote === "hellaShort") {
+          statusElement.textContent = `You voted: 📉 Hella Short (tap to change)`;
+        } else if (userVote === "short") {
+          statusElement.textContent = `You voted: 📊 Short (tap to change)`;
+        } else if (userVote === "long") {
+          statusElement.textContent = `You voted: 📈 Long (tap to change)`;
+        } else if (userVote === "hellaLong") {
+          statusElement.textContent = `You voted: 🚀 Hella Long (tap to change)`;
         } else {
           statusElement.textContent = "Cast your vote above!";
         }
-        // Note: bad votes never show as user votes since they're censored
       }
 
       // Initialize UI on page load
