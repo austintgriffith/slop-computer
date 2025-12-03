@@ -359,6 +359,44 @@
         align-items: center;
       }
 
+      /* QR Code */
+      .qr-code {
+        position: fixed;
+        bottom: 40px;
+        right: 10px;
+        width: 80px;
+        height: 80px;
+        background-color: white;
+        border: 2px outset var(--win95-gray);
+        padding: 4px;
+        z-index: 999;
+        cursor: pointer;
+        box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      }
+
+      .qr-code img {
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+
+      .qr-code:hover {
+        border: 2px inset var(--win95-gray);
+      }
+
+      .qr-label {
+        position: fixed;
+        bottom: 122px;
+        right: 10px;
+        background-color: var(--win95-gray);
+        border: 1px outset var(--win95-gray);
+        padding: 2px 4px;
+        font-size: 9px;
+        z-index: 999;
+        text-align: center;
+        width: 88px;
+      }
+
       /* Responsive adjustments */
       @media (max-width: 768px) {
         .window {
@@ -433,6 +471,12 @@
         <div class="user-count" id="user-count">Users: 1</div>
       </div>
     </div>
+
+    <!-- QR Code -->
+    <div class="qr-label">slop.computer</div>
+    <a href="https://slop.computer" target="_blank" class="qr-code" title="Visit slop.computer">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://slop.computer" alt="QR Code to slop.computer">
+    </a>
 
     <!-- Taskbar -->
     <div class="taskbar">
