@@ -41,11 +41,11 @@ app.get("/", (req, res) => {
 
 // Secret endpoint to reset votes
 app.get("/supersecretreset", (req, res) => {
-  // Reset vote counts
+  // Reset vote counts for all questions
   votes = {
-    good: 0,
-    bad: 0,
-    total: 0
+    developer: { yes: 0, no: 0, total: 0 },
+    eth: { yes: 0, no: 0, total: 0 },
+    contract: { yes: 0, no: 0, total: 0 }
   };
   
   // Clear user votes
@@ -80,14 +80,21 @@ let onlineUsers = 0;
 // Store connected users with details
 let connectedUsers = {};
 
-// Vote storage
+// Poll questions
+const pollQuestions = [
+  { id: "developer", question: "Are you a developer?" },
+  { id: "eth", question: "Do you hold ETH?" },
+  { id: "contract", question: "Have you deployed a smart contract to mainnet?" }
+];
+
+// Vote storage for each question
 let votes = {
-  good: 0,
-  bad: 0,
-  total: 0
+  developer: { yes: 0, no: 0, total: 0 },
+  eth: { yes: 0, no: 0, total: 0 },
+  contract: { yes: 0, no: 0, total: 0 }
 };
 
-// Store user votes to prevent multiple votes per user
+// Store user votes per question to prevent multiple votes
 let userVotes = {};
 
 io.on("connection", (socket) => {
@@ -118,47 +125,45 @@ io.on("connection", (socket) => {
   // Send current vote counts to new connection
   socket.emit("voteUpdate", votes);
 
-  // Handle vote submission
-  socket.on("vote", (voteType) => {
-    if (voteType === "bad") {
-      // Censor bad votes with weird errors
-      const weirdErrors = [
-        "ERROR 404: Negativity not found in this dimension 🌈",
-        "SYSTEM MALFUNCTION: Bad vibes detected, redirecting to happiness protocol ✨",
-        "COSMIC INTERFERENCE: The universe rejects your pessimism 🛸",
-        "TECHNICAL DIFFICULTY: Our servers are allergic to bad vibes 🤧",
-        "CONNECTION TIMEOUT: Your negativity is buffering... please try positivity instead 🔄",
-        "SECURITY ALERT: Bad vibes blocked by our happiness firewall 🔒",
-        "DATABASE ERROR: Table 'bad_vibes' has been deleted by the joy department 💫",
-        "NETWORK REJECTED: This network only supports good vibes transmission 📡"
-      ];
-      
-      const randomError = weirdErrors[Math.floor(Math.random() * weirdErrors.length)];
-      socket.emit("voteError", randomError);
-      console.log(`Bad vote censored from ${userId}: ${randomError}`);
+  // Handle vote submission for poll questions
+  socket.on("vote", (data) => {
+    const { questionId, answer } = data;
+    
+    // Validate question exists
+    if (!votes[questionId]) {
+      console.log(`Invalid question ID: ${questionId}`);
       return;
     }
     
-    if (voteType === "good") {
-      // Check if user has already voted
-      const existingVote = userVotes[userId];
-      
-      if (existingVote) {
-        // User is changing their vote (remove old vote)
-        votes[existingVote]--;
-        votes.total--;
-      }
-      
-      // Add new vote
-      votes[voteType]++;
-      votes.total++;
-      userVotes[userId] = voteType;
-      
-      // Broadcast updated vote counts to all clients
-      io.emit("voteUpdate", votes);
-      
-      console.log(`Vote received: ${voteType} from ${userId}. Current counts:`, votes);
+    // Validate answer
+    if (answer !== "yes" && answer !== "no") {
+      console.log(`Invalid answer: ${answer}`);
+      return;
     }
+    
+    // Initialize user votes object if needed
+    if (!userVotes[userId]) {
+      userVotes[userId] = {};
+    }
+    
+    // Check if user has already voted on this question
+    const existingVote = userVotes[userId][questionId];
+    
+    if (existingVote) {
+      // User is changing their vote (remove old vote)
+      votes[questionId][existingVote]--;
+      votes[questionId].total--;
+    }
+    
+    // Add new vote
+    votes[questionId][answer]++;
+    votes[questionId].total++;
+    userVotes[userId][questionId] = answer;
+    
+    // Broadcast updated vote counts to all clients
+    io.emit("voteUpdate", votes);
+    
+    console.log(`Vote received: ${questionId}=${answer} from ${userId}. Current counts:`, votes);
   });
 
   // Update user status when they send a ping
